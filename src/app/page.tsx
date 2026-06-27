@@ -51,14 +51,19 @@ type NoteArticle = {
 async function fetchNoteTopics(): Promise<NoteArticle[]> {
   try {
     const res = await fetch("https://note.com/inutosanin/rss", {
-      next: { revalidate: 3600 }, // 1時間キャッシュ
+      cache: "no-store", // 常に最新を取得（キャッシュ無効）
     });
+
+    console.log("[RSS] status:", res.status, "ok:", res.ok);
     if (!res.ok) return [];
 
     const xml = await res.text();
+    console.log("[RSS] xml length:", xml.length);
 
     // <item>ブロックを抽出してパース
     const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/g) ?? [];
+    console.log("[RSS] item count:", itemMatches.length);
+
     return itemMatches.slice(0, 5).map((item) => {
       const title = item.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/)?.[1]
         ?? item.match(/<title>([\s\S]*?)<\/title>/)?.[1]
@@ -69,7 +74,8 @@ async function fetchNoteTopics(): Promise<NoteArticle[]> {
       const pubDate = item.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] ?? "";
       return { title: title.trim(), link: link.trim(), pubDate: pubDate.trim() };
     });
-  } catch {
+  } catch (e) {
+    console.error("[RSS] fetch error:", e);
     return [];
   }
 }
