@@ -66,24 +66,37 @@ export default function Home() {
       </header>
 
       {/* ヒーローセクション */}
-      <section className="bg-[#2C2C2A] text-white px-6 py-20 text-center">
-        <h1 className="text-4xl sm:text-5xl font-bold mb-4 leading-tight">
-          愛犬と楽しむ
-          <br />
-          <span className="text-[#E24B4A]">サンイン</span>のすべて
-        </h1>
-        <p className="text-[#888780] text-sm mb-6 tracking-wide">
-          山陰（鳥取・島根）の犬オーナーのために
-        </p>
-        <p className="text-[#888780] text-base sm:text-lg max-w-xl mx-auto mb-10">
-          ドッグラン・動物病院・ペット可施設など、山陰エリアの犬にまつわる情報を一か所に。
-        </p>
-        <Link
-          href="/spots"
-          className="inline-block bg-[#E24B4A] hover:bg-[#c93d3c] text-white font-semibold px-8 py-3 rounded-full transition-colors"
-        >
-          スポットを探す
-        </Link>
+      <section className="relative h-[700px] flex items-center justify-center text-white text-center px-6 overflow-hidden">
+        {/* 背景画像 */}
+        <Image
+          src="/images/hero.png"
+          alt="山陰の風景"
+          fill
+          className="object-cover"
+          priority
+        />
+        {/* 黒オーバーレイ（透明度40%） */}
+        <div className="absolute inset-0 bg-black/60" />
+        {/* テキストコンテンツ */}
+        <div className="relative z-10">
+          <h1 className="text-4xl sm:text-5xl font-bold mb-4 leading-tight">
+            愛犬と楽しむ
+            <br />
+            <span className="text-[#E24B4A]">サンイン</span>のすべて
+          </h1>
+          <p className="text-white/70 text-sm mb-6 tracking-wide">
+            山陰（鳥取・島根）の犬オーナーのために
+          </p>
+          <p className="text-white/70 text-base sm:text-lg max-w-xl mx-auto mb-10">
+            ドッグラン・動物病院・ペット可施設など、山陰エリアの犬にまつわる情報を一か所に。
+          </p>
+          <Link
+            href="/spots"
+            className="inline-block bg-[#E24B4A] hover:bg-[#c93d3c] text-white font-semibold px-8 py-3 rounded-full transition-colors"
+          >
+            スポットを探す
+          </Link>
+        </div>
       </section>
 
       {/* カテゴリ選択 */}
