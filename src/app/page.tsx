@@ -1,5 +1,10 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "イヌとサンイン | 山陰の犬オーナーのためのポータルサイト",
+};
 
 // カテゴリ定義（スラッグ・表示名・説明・アイコンパス）
 const CATEGORIES = [
