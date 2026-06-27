@@ -1,0 +1,123 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import Image from "next/image";
+
+export const metadata: Metadata = {
+  title: "このサイトについて",
+  description:
+    "イヌとサンインは、山陰（鳥取・島根）で犬と暮らすオーナーのための情報ポータルサイトです。運営者・コンセプト・お問い合わせ先をご紹介します。",
+};
+
+export default function AboutPage() {
+  return (
+    <main className="flex flex-col min-h-screen">
+      {/* ヘッダー */}
+      <header className="bg-[#FAF7F2] px-6 py-6 flex items-center justify-between">
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/icons/inutosanin.svg"
+            alt="イヌとサンイン"
+            width={192}
+            height={64}
+            priority
+          />
+        </Link>
+        <nav className="hidden sm:flex gap-6 text-base font-medium tracking-wider text-[#2C2C2A]">
+          <Link href="/spots" className="hover:text-[#E24B4A] transition-colors">
+            スポット一覧
+          </Link>
+          <Link href="/about" className="text-[#E24B4A]">
+            このサイトについて
+          </Link>
+        </nav>
+      </header>
+
+      <div className="flex-1 max-w-2xl mx-auto w-full px-6 py-16">
+        <h1 className="text-3xl font-bold text-[#2C2C2A] mb-12">このサイトについて</h1>
+
+        {/* サイトのコンセプト */}
+        <section className="mb-12">
+          <h2 className="text-xl font-bold text-[#2C2C2A] mb-4 pb-2 border-b border-gray-200">
+            サイトのコンセプト
+          </h2>
+          <p className="text-[#2C2C2A] leading-relaxed mb-4">
+            山陰（鳥取・島根）に住んでいると、愛犬と行ける場所の情報がなかなか見つからない——そんな経験はありませんか？
+          </p>
+          <p className="text-[#2C2C2A] leading-relaxed mb-4">
+            「イヌとサンイン」は、山陰エリアで犬と暮らすオーナーのための情報をひとつにまとめたポータルサイトです。
+            ドッグラン・動物病院・ペットホテル・ペットOK飲食店・ペット用品店・保護犬情報まで、
+            山陰の犬にまつわる情報を一か所で探せるようにしました。
+          </p>
+          <p className="text-[#2C2C2A] leading-relaxed">
+            地元で犬と豊かに暮らせる環境づくりのために、このサイトを運営しています。
+          </p>
+        </section>
+
+        {/* 愛犬マサオの紹介 */}
+        <section className="mb-12">
+          <h2 className="text-xl font-bold text-[#2C2C2A] mb-4 pb-2 border-b border-gray-200">
+            愛犬・マサオについて
+          </h2>
+          <p className="text-[#2C2C2A] leading-relaxed mb-4">
+            このサイトのもうひとりの主役が、愛犬のマサオです。
+          </p>
+          <p className="text-[#2C2C2A] leading-relaxed">
+            マサオと一緒に山陰を歩き回るなかで気づいたこと、困ったこと、発見したこと——そのすべてがこのサイトの原点です。
+            マサオのような山陰の犬たちが、もっと楽しく・安心して暮らせるように。そんな思いでページを作っています。
+          </p>
+        </section>
+
+        {/* 運営者情報 */}
+        <section className="mb-12">
+          <h2 className="text-xl font-bold text-[#2C2C2A] mb-4 pb-2 border-b border-gray-200">
+            運営者情報
+          </h2>
+          <dl className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row sm:gap-8">
+              <dt className="text-sm font-medium text-[#888780] sm:w-24 shrink-0">運営者</dt>
+              <dd className="text-[#2C2C2A]">戸渡直宏</dd>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:gap-8">
+              <dt className="text-sm font-medium text-[#888780] sm:w-24 shrink-0">会社名</dt>
+              <dd className="text-[#2C2C2A]">グレートブレーン</dd>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:gap-8">
+              <dt className="text-sm font-medium text-[#888780] sm:w-24 shrink-0">所在地</dt>
+              <dd className="text-[#2C2C2A]">鳥取県米子市</dd>
+            </div>
+          </dl>
+        </section>
+
+        {/* お問い合わせ */}
+        <section className="mb-12">
+          <h2 className="text-xl font-bold text-[#2C2C2A] mb-4 pb-2 border-b border-gray-200">
+            お問い合わせ
+          </h2>
+          <p className="text-[#2C2C2A] leading-relaxed mb-4">
+            スポット情報の追加・修正依頼、掲載に関するご相談など、お気軽にご連絡ください。
+          </p>
+          <a
+            href="mailto:info@greatbrain475.com"
+            className="inline-flex items-center gap-2 text-[#E24B4A] hover:underline font-medium"
+          >
+            info@greatbrain475.com
+          </a>
+        </section>
+
+        <div className="mt-12 text-center">
+          <Link
+            href="/"
+            className="text-sm text-[#888780] hover:text-[#2C2C2A] transition-colors"
+          >
+            ← トップページに戻る
+          </Link>
+        </div>
+      </div>
+
+      {/* フッター */}
+      <footer className="bg-[#2C2C2A] text-[#888780] text-xs text-center py-6">
+        © 2026 イヌとサンイン. All rights reserved.
+      </footer>
+    </main>
+  );
+}

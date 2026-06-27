@@ -44,6 +44,23 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "イヌとサンイン",
+    url: BASE_URL,
+    description: "山陰の犬オーナーのためのポータルサイト",
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "イヌとサンイン",
+    url: BASE_URL,
+    logo: `${BASE_URL}/icons/inutosanin.svg`,
+  },
+];
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -51,6 +68,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className={`${geistSans.variable} h-full antialiased`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-white text-[#2C2C2A]">
         {children}
       </body>
