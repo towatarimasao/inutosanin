@@ -30,3 +30,18 @@ export const spots = pgTable("spots", {
 
 export type Spot = typeof spots.$inferSelect;
 export type NewSpot = typeof spots.$inferInsert;
+
+// トピックス（ニュース・イベント等）テーブル
+export const topics = pgTable("topics", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  // カテゴリ例：ニュース / 新スポット / イベント / お役立ち
+  category: text("category").notNull(),
+  thumbnail_url: text("thumbnail_url"),
+  published_at: timestamp("published_at").notNull().defaultNow(),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type Topic = typeof topics.$inferSelect;
+export type NewTopic = typeof topics.$inferInsert;

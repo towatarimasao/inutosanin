@@ -41,7 +41,53 @@ const CATEGORIES = [
   },
 ] as const;
 
-export default function Home() {
+type NoteArticle = {
+  title: string;
+  link: string;
+  pubDate: string;
+};
+
+// note.com RSSから最新5件を取得
+async function fetchNoteTopics(): Promise<NoteArticle[]> {
+  try {
+    const res = await fetch("https://note.com/inutosanin/rss", {
+      next: { revalidate: 3600 }, // 1時間キャッシュ
+    });
+    if (!res.ok) return [];
+
+    const xml = await res.text();
+
+    // <item>ブロックを抽出してパース
+    const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/g) ?? [];
+    return itemMatches.slice(0, 5).map((item) => {
+      const title = item.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/)?.[1]
+        ?? item.match(/<title>([\s\S]*?)<\/title>/)?.[1]
+        ?? "";
+      const link = item.match(/<link>([\s\S]*?)<\/link>/)?.[1]
+        ?? item.match(/<guid[^>]*>([\s\S]*?)<\/guid>/)?.[1]
+        ?? "";
+      const pubDate = item.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] ?? "";
+      return { title: title.trim(), link: link.trim(), pubDate: pubDate.trim() };
+    });
+  } catch {
+    return [];
+  }
+}
+
+function formatPubDate(pubDate: string) {
+  if (!pubDate) return "";
+  const d = new Date(pubDate);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("ja-JP", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).replace(/\//g, ".");
+}
+
+export default async function Home() {
+  const noteTopics = await fetchNoteTopics();
+
   return (
     <main className="flex flex-col min-h-screen">
       {/* ヘッダー */}
@@ -75,7 +121,7 @@ export default function Home() {
           className="object-cover"
           priority
         />
-        {/* 黒オーバーレイ（透明度40%） */}
+        {/* 黒オーバーレイ（透明度60%） */}
         <div className="absolute inset-0 bg-black/60" />
         {/* テキストコンテンツ */}
         <div className="relative z-10">
@@ -96,6 +142,48 @@ export default function Home() {
           >
             スポットを探す
           </Link>
+        </div>
+      </section>
+
+      {/* 新着トピックス（note.com RSSフィード） */}
+      <section className="bg-[#FAF7F2] px-6 py-16">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold text-[#2C2C2A] mb-8">新着トピックス</h2>
+
+          {noteTopics.length === 0 ? (
+            <p className="text-[#888780] text-center py-10">準備中</p>
+          ) : (
+            <ul className="flex flex-col gap-3">
+              {noteTopics.map((article, i) => (
+                <li key={i}>
+                  <a
+                    href={article.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-4 bg-white rounded-2xl px-6 py-4 border border-gray-100 hover:border-[#E24B4A] hover:shadow-sm transition-all"
+                  >
+                    <span className="text-xs text-[#888780] whitespace-nowrap">
+                      {formatPubDate(article.pubDate)}
+                    </span>
+                    <span className="text-sm font-medium text-[#2C2C2A] group-hover:text-[#E24B4A] transition-colors line-clamp-1">
+                      {article.title}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="mt-8 text-center">
+            <a
+              href="https://note.com/inutosanin"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block border border-[#E24B4A] text-[#E24B4A] hover:bg-[#E24B4A] hover:text-white font-semibold px-8 py-3 rounded-full transition-colors"
+            >
+              もっと見る
+            </a>
+          </div>
         </div>
       </section>
 
