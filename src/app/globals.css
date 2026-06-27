@@ -4,7 +4,8 @@
   --background: #ffffff;
   --foreground: #2C2C2A;
   --accent: #E24B4A;
-  --subtext: #888780;
+  /* #888780 は白背景でコントラスト比3.3:1（WCAG AA未達）のため #6B6A64 に変更（5.1:1） */
+  --subtext: #6B6A64;
 }
 
 @theme inline {
@@ -14,7 +15,7 @@
   --color-subtext: var(--subtext);
   --color-brand-dark: #2C2C2A;
   --color-brand-red: #E24B4A;
-  --color-brand-sub: #888780;
+  --color-brand-sub: #6B6A64;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -23,4 +24,12 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* キーボード操作時のフォーカスをサイトカラーで統一表示 */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #E24B4A;
+  outline-offset: 2px;
+  border-radius: 4px;
 }
