@@ -35,6 +35,9 @@ export const metadata: Metadata = {
     ],
     locale: "ja_JP",
   },
+  verification: {
+    google: "1KWlAnQkrgavNJ4UXpHhJZJHk4e_aaJ9dzXRUjOMNfg",
+  },
   twitter: {
     card: "summary_large_image",
     title: "イヌとサンイン | 山陰の犬オーナーのためのポータルサイト",
