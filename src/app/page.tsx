@@ -6,45 +6,57 @@ export const metadata: Metadata = {
   title: "イヌとサンイン | 山陰の犬オーナーのためのポータルサイト",
 };
 
-// カテゴリ定義（スラッグ・表示名・説明・アイコンパス）
+// カテゴリ定義（スラッグ・表示名・説明・アイコンパス・カラー）
 const CATEGORIES = [
   {
     slug: "dogrun",
     label: "ドッグラン",
     description: "山陰のドッグランを探す",
     icon: "/icons/dogrun.svg",
+    bgColor: "#E2EEE8",   // 苔色tint
+    iconBg: "#C5DDD0",    // 少し濃い苔色
   },
   {
     slug: "hospital",
     label: "動物病院",
     description: "近くの動物病院を探す",
     icon: "/icons/clinick.svg",
+    bgColor: "#DEEAF0",   // 空色tint
+    iconBg: "#BDD4E3",    // 少し濃い空色
   },
   {
     slug: "hotel",
     label: "ペットホテル",
     description: "預かりサービスを探す",
     icon: "/icons/bed.svg",
+    bgColor: "#FBEADD",   // 柿色tint
+    iconBg: "#F5D0B5",    // 少し濃い柿色
   },
   {
     slug: "restaurant",
     label: "ペットOK飲食店",
     description: "愛犬と入れるお店を探す",
     icon: "/icons/cafe.svg",
+    bgColor: "#E2EEE8",   // 苔色tint
+    iconBg: "#C5DDD0",
   },
   {
     slug: "petshop",
     label: "ペット用品店",
     description: "グッズやフードを探す",
     icon: "/icons/shop.svg",
+    bgColor: "#DEEAF0",   // 空色tint
+    iconBg: "#BDD4E3",
   },
   {
     slug: "adoption",
     label: "保護犬情報",
     description: "里親募集を探す",
     icon: "/icons/hogoken.svg",
+    bgColor: "#FBEADD",   // 柿色tint
+    iconBg: "#F5D0B5",
   },
-] as const;
+];
 
 type NoteArticle = {
   title: string;
@@ -216,10 +228,14 @@ export default async function Home() {
                 <Link
                   key={cat.slug}
                   href={`/spots?category=${cat.slug}`}
-                  className="group flex flex-col items-center gap-3 bg-surface border border-accent/15 rounded-3xl p-6 hover:border-accent hover:shadow-md hover:-translate-y-0.5 transition-all"
+                  style={{ backgroundColor: cat.bgColor }}
+                  className="group flex flex-col items-center gap-3 border-b-4 border-accent rounded-3xl p-6 hover:shadow-lg hover:-translate-y-2 transition-all duration-200"
                 >
-                  {/* アイコン背景：ホバー時に柿色の薄い円 */}
-                  <div className="w-16 h-16 flex items-center justify-center rounded-2xl bg-page group-hover:bg-accent/10 transition-colors">
+                  {/* アイコン背景円 */}
+                  <div
+                    style={{ backgroundColor: cat.iconBg }}
+                    className="w-20 h-20 flex items-center justify-center rounded-full"
+                  >
                     <Image
                       src={cat.icon}
                       alt={`${cat.label}アイコン`}
@@ -227,10 +243,10 @@ export default async function Home() {
                       height={48}
                     />
                   </div>
-                  <span className="font-heading font-semibold text-foreground group-hover:text-accent transition-colors">
+                  <span className="font-heading font-bold text-lg text-foreground group-hover:text-accent transition-colors">
                     {cat.label}
                   </span>
-                  <span className="text-xs text-subtext text-center">
+                  <span className="text-sm text-subtext text-center">
                     {cat.description}
                   </span>
                 </Link>
