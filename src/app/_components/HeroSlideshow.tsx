@@ -19,8 +19,8 @@ export default function HeroSlideshow() {
 
   return (
     <section
-      className="relative h-[700px] flex items-center justify-center text-center px-6 overflow-hidden"
-      style={{ borderRadius: "50% 50% 50% 50% / 20px 20px 40px 40px" }}
+      className="relative aspect-video max-h-[700px] mx-[100px] flex items-center justify-center text-center px-6 overflow-hidden"
+      style={{ borderRadius: "0 0 50% 50% / 0 0 60px 60px" }}
     >
       {/* スライドショー背景 */}
       {heroImages.map((src, i) => (
