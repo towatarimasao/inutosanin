@@ -62,26 +62,36 @@ type NoteArticle = {
   title: string;
   link: string;
   pubDate: string;
+  thumbnail: string;
+  excerpt: string;
 };
 
-// note.com RSSから最新5件を取得
+// HTMLタグを除去してプレーンテキストを取得
+function stripHtml(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
+}
+
+// note.com RSSから最新6件を取得（3カラムグリッド用）
 async function fetchNoteTopics(): Promise<NoteArticle[]> {
   try {
     const res = await fetch("https://note.com/inutosanin/rss", {
-      cache: "no-store", // 常に最新を取得（キャッシュ無効）
+      cache: "no-store",
     });
 
-    console.log("[RSS] status:", res.status, "ok:", res.ok);
     if (!res.ok) return [];
 
     const xml = await res.text();
-    console.log("[RSS] xml length:", xml.length);
-
-    // <item>ブロックを抽出してパース
     const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/g) ?? [];
-    console.log("[RSS] item count:", itemMatches.length);
 
-    return itemMatches.slice(0, 5).map((item) => {
+    return itemMatches.slice(0, 6).map((item) => {
       const title = item.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/)?.[1]
         ?? item.match(/<title>([\s\S]*?)<\/title>/)?.[1]
         ?? "";
@@ -89,7 +99,20 @@ async function fetchNoteTopics(): Promise<NoteArticle[]> {
         ?? item.match(/<guid[^>]*>([\s\S]*?)<\/guid>/)?.[1]
         ?? "";
       const pubDate = item.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] ?? "";
-      return { title: title.trim(), link: link.trim(), pubDate: pubDate.trim() };
+      const thumbnail = item.match(/<media:thumbnail[^>]*>([\s\S]*?)<\/media:thumbnail>/)?.[1]
+        ?? item.match(/<media:thumbnail\s+url="([^"]+)"/)?.[1]
+        ?? "";
+      // CDATA内のHTMLから本文冒頭を抽出（末尾の「続きをみる」リンクは除外）
+      const rawDesc = item.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/)?.[1] ?? "";
+      const excerpt = stripHtml(rawDesc.replace(/<a\s[^>]*>続きをみる<\/a>/g, ""));
+
+      return {
+        title: title.trim(),
+        link: link.trim(),
+        pubDate: pubDate.trim(),
+        thumbnail: thumbnail.trim(),
+        excerpt: excerpt,
+      };
     });
   } catch (e) {
     console.error("[RSS] fetch error:", e);
@@ -176,34 +199,63 @@ export default async function Home() {
 
         {/* 新着トピックス（note.com RSSフィード） */}
         <section className="bg-surface px-6 py-16">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="font-heading text-2xl font-bold text-foreground mb-8">新着トピックス</h2>
+          <div className="max-w-5xl mx-auto">
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-10">新着トピックス</h2>
 
             {noteTopics.length === 0 ? (
               <p className="text-subtext text-center py-10">準備中</p>
             ) : (
-              <ul className="flex flex-col gap-3">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {noteTopics.map((article, i) => (
                   <li key={i}>
                     <a
                       href={article.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center gap-4 bg-page rounded-2xl px-6 py-4 border border-accent/20 hover:border-accent hover:shadow-sm transition-all"
+                      className="group flex flex-col bg-page rounded-2xl overflow-hidden border border-accent/15 hover:shadow-lg transition-all duration-200"
                     >
-                      <span className="text-xs text-subtext whitespace-nowrap font-en">
-                        {formatPubDate(article.pubDate)}
-                      </span>
-                      <span className="text-sm font-medium text-foreground group-hover:text-accent transition-colors line-clamp-1">
-                        {article.title}
-                      </span>
+                      {/* サムネイル */}
+                      <div className="relative aspect-video overflow-hidden bg-[#E2EEE8]">
+                        {article.thumbnail ? (
+                          <Image
+                            src={article.thumbnail}
+                            alt={article.title}
+                            fill
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          /* 画像なし時のフォールバック */
+                          <div className="absolute inset-0 flex items-center justify-center text-accent/30 text-5xl">
+                            🐾
+                          </div>
+                        )}
+                      </div>
+
+                      {/* テキスト */}
+                      <div className="flex flex-col gap-2 p-4 flex-1">
+                        <span className="font-en text-xs font-semibold text-accent">
+                          {formatPubDate(article.pubDate)}
+                        </span>
+                        <p className="font-bold text-base text-foreground line-clamp-2 leading-snug">
+                          {article.title}
+                        </p>
+                        {article.excerpt && (
+                          <p className="text-sm text-subtext line-clamp-3 leading-relaxed">
+                            {article.excerpt}
+                          </p>
+                        )}
+                        <span className="mt-auto pt-2 text-sm font-semibold text-accent group-hover:underline">
+                          続きを読む →
+                        </span>
+                      </div>
                     </a>
                   </li>
                 ))}
               </ul>
             )}
 
-            <div className="mt-8 text-center">
+            <div className="mt-10 text-center">
               <a
                 href="https://note.com/inutosanin"
                 target="_blank"
