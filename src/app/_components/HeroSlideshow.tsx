@@ -4,7 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const heroImages = ["/images/hero.png"];
+const heroImages = [
+  "/images/hero1.png",
+  "/images/hero2.png",
+  "/images/hero3.png",
+  "/images/hero4.png",
+  "/images/hero5.png",
+];
 
 export default function HeroSlideshow() {
   const [currentIndex, setCurrentIndex] = useState(0);
