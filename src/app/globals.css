@@ -1,10 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #2C2C2A;
-  --accent: #E24B4A;
-  /* #888780 は白背景でコントラスト比3.3:1（WCAG AA未達）のため #6B6A64 に変更（5.1:1） */
+  --background: #F7F1E7;
+  --foreground: #2A2521;
+  --accent: #D2691E;
+  --accent-2: #3A6E58;
+  --surface: #FCFAF5;
   --subtext: #6B6A64;
 }
 
@@ -12,24 +13,25 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-surface: var(--surface);
+  --color-page: #F7F1E7;
   --color-subtext: var(--subtext);
-  --color-brand-dark: #2C2C2A;
-  --color-brand-red: #E24B4A;
-  --color-brand-sub: #6B6A64;
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-zen);
+  --font-body: var(--font-noto);
+  --font-en: var(--font-figtree);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-noto), var(--font-zen), sans-serif;
 }
 
 /* キーボード操作時のフォーカスをサイトカラーで統一表示 */
 a:focus-visible,
 button:focus-visible {
-  outline: 2px solid #E24B4A;
+  outline: 2px solid #D2691E;
   outline-offset: 2px;
   border-radius: 4px;
 }
