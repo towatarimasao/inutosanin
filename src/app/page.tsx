@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import HeroSlideshow from "./_components/HeroSlideshow";
+import Header from "./_components/Header";
 
 export const metadata: Metadata = {
   title: "イヌとサンイン | 山陰の犬オーナーのためのポータルサイト",
@@ -137,26 +138,8 @@ export default async function Home() {
 
   return (
     <>
-      {/* ヘッダー：グローバルナビ */}
-      <header className="bg-[#FAF6F1] px-6 py-5 flex items-center justify-between">
-        <Link href="/" className="flex items-center">
-          <Image
-            src="/icons/inutosanin.svg"
-            alt="イヌとサンイン"
-            width={192}
-            height={64}
-            priority
-          />
-        </Link>
-        <nav aria-label="メインナビゲーション" className="hidden sm:flex gap-6 text-base font-medium tracking-wider text-foreground">
-          <Link href="/spots" className="hover:text-accent transition-colors">
-            スポット一覧
-          </Link>
-          <Link href="/about" className="hover:text-accent transition-colors">
-            このサイトについて
-          </Link>
-        </nav>
-      </header>
+      {/* ヘッダー */}
+      <Header />
 
       <main className="flex flex-col flex-1 bg-[#FAF6F1]">
         {/* ヒーローセクション */}
