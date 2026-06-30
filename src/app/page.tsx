@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import HeroSlideshow from "./_components/HeroSlideshow";
 import Header from "./_components/Header";
+import Footer from "./_components/Footer";
 
 export const metadata: Metadata = {
   title: "イヌとサンイン | 山陰の犬オーナーのためのポータルサイト",
@@ -256,10 +257,7 @@ export default async function Home() {
         </section>
       </main>
 
-      {/* フッター：#9E9D97 は #2A2521 背景上でコントラスト比5.5:1（WCAG AA達成） */}
-      <footer className="bg-foreground text-[#9E9D97] text-xs text-center py-6">
-        © 2026 イヌとサンイン. All rights reserved.
-      </footer>
+      <Footer />
     </>
   );
 }
