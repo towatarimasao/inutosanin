@@ -138,7 +138,7 @@ export default async function Home() {
   return (
     <>
       {/* ヘッダー：グローバルナビ */}
-      <header className="bg-surface px-6 py-5 flex items-center justify-between border-b border-accent/10">
+      <header className="bg-[#FAF6F1] px-6 py-5 flex items-center justify-between">
         <Link href="/" className="flex items-center">
           <Image
             src="/icons/inutosanin.svg"
@@ -158,12 +158,12 @@ export default async function Home() {
         </nav>
       </header>
 
-      <main className="flex flex-col flex-1">
+      <main className="flex flex-col flex-1 bg-[#FAF6F1]">
         {/* ヒーローセクション */}
         <HeroSlideshow />
 
         {/* 新着トピックス（note.com RSSフィード） */}
-        <section className="bg-surface px-6 py-16">
+        <section className="bg-[#FAF6F1] px-6 py-16">
           <div className="max-w-5xl mx-auto">
             <h2 className="font-heading text-2xl font-bold text-foreground mb-10">新着トピックス</h2>
 
@@ -177,7 +177,7 @@ export default async function Home() {
                       href={article.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex flex-col bg-page rounded-2xl overflow-hidden border border-accent/15 hover:shadow-lg transition-all duration-200"
+                      className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-accent/15 hover:shadow-lg transition-all duration-200"
                     >
                       {/* サムネイル */}
                       <div className="relative aspect-video overflow-hidden bg-[#E2EEE8]">
@@ -235,7 +235,7 @@ export default async function Home() {
         </section>
 
         {/* カテゴリ選択 */}
-        <section className="bg-page px-6 py-16">
+        <section className="bg-[#FAF6F1] px-6 py-16">
           <div className="max-w-5xl mx-auto">
             <h2 className="font-heading text-2xl font-bold text-center text-foreground mb-10">
               カテゴリから探す

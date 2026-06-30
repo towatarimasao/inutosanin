@@ -19,25 +19,28 @@ export default function HeroSlideshow() {
 
   return (
     <section
-      className="relative w-[calc(100%-80px)] h-[520px] mx-auto flex items-center justify-center text-center px-6 overflow-hidden"
-      style={{ borderRadius: "50% 50% 40% 40% / 40px 40px 30px 30px" }}
+      className="relative w-[calc(100%-80px)] h-[600px] mx-auto flex items-center justify-center text-center px-6 bg-[#FAF6F1]"
+      style={{}}
     >
-      {/* スライドショー背景 */}
-      {heroImages.map((src, i) => (
-        <Image
-          key={src}
-          src={src}
-          alt="山陰の海辺のドッグランで犬たちが遊ぶイラスト"
-          fill
-          className={`object-cover transition-opacity duration-1000 ${
-            i === currentIndex ? "opacity-100" : "opacity-0"
-          }`}
-          priority={i === 0}
-        />
-      ))}
+      {/* 画像をsection内に収めるクリップラッパー */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* スライドショー背景 */}
+        {heroImages.map((src, i) => (
+          <Image
+            key={src}
+            src={src}
+            alt="山陰の海辺のドッグランで犬たちが遊ぶイラスト"
+            fill
+            className={`object-cover transition-opacity duration-1000 ${
+              i === currentIndex ? "opacity-100" : "opacity-0"
+            }`}
+            priority={i === 0}
+          />
+        ))}
 
-      {/* 温かみのある暗めオーバーレイ */}
-      <div className="absolute inset-0 bg-[#2A2521]/55" aria-hidden="true" />
+        {/* 温かみのある暗めオーバーレイ */}
+        <div className="absolute inset-0 bg-[#2A2521]/55" aria-hidden="true" />
+      </div>
 
       {/* テキストコンテンツ */}
       <div className="relative z-10">
@@ -63,6 +66,20 @@ export default function HeroSlideshow() {
         >
           スポットを探す
         </Link>
+      </div>
+
+      {/* 下辺カーブオーバーレイ */}
+      <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none" style={{ zIndex: 20 }}>
+        <svg viewBox="0 0 1200 20" preserveAspectRatio="none" className="w-full h-[20px]">
+          <ellipse cx="600" cy="20" rx="700" ry="20" fill="#FAF6F1" />
+        </svg>
+      </div>
+
+      {/* 上辺カーブオーバーレイ */}
+      <div className="absolute top-0 left-0 w-full overflow-hidden leading-none" style={{ zIndex: 20 }}>
+        <svg viewBox="0 0 1200 20" preserveAspectRatio="none" className="w-full h-[20px]">
+          <ellipse cx="600" cy="0" rx="700" ry="20" fill="#FAF6F1" />
+        </svg>
       </div>
     </section>
   );
