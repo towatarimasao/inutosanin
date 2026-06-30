@@ -25,7 +25,7 @@ export default function HeroSlideshow() {
 
   return (
     <section
-      className="relative w-full max-w-[calc(100%-48px)] h-[600px] mx-auto flex items-center justify-center text-center px-6 bg-[#FAF6F1]"
+      className="relative w-full max-w-[calc(100%-48px)] aspect-[16/9] max-h-[650px] mx-auto flex items-center justify-center text-center px-6 bg-[#FAF6F1]"
       style={{}}
     >
       {/* 画像をsection内に収めるクリップラッパー */}
