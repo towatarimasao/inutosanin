@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Header from "@/app/_components/Header";
 import Footer from "@/app/_components/Footer";
+import { supabase } from "@/lib/supabase";
 
 export const metadata: Metadata = {
   title: "スポット一覧",
@@ -9,13 +10,13 @@ export const metadata: Metadata = {
 };
 
 const CATEGORIES = [
-  { slug: "",          label: "すべて" },
-  { slug: "dogrun",    label: "ドッグラン" },
-  { slug: "vet",       label: "動物病院" },
-  { slug: "hotel",     label: "ペットホテル" },
-  { slug: "restaurant",label: "ペットOK飲食店" },
-  { slug: "shop",      label: "ペット用品店" },
-  { slug: "adoption",  label: "保護犬情報" },
+  { slug: "",           label: "すべて" },
+  { slug: "dogrun",     label: "ドッグラン" },
+  { slug: "vet",        label: "動物病院" },
+  { slug: "hotel",      label: "ペットホテル" },
+  { slug: "restaurant", label: "ペットOK飲食店" },
+  { slug: "shop",       label: "ペット用品店" },
+  { slug: "adoption",   label: "保護犬情報" },
 ];
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -36,109 +37,18 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
   adoption:   { bg: "#F5D0B5", text: "#7A3D10" },
 };
 
-type MockSpot = {
+type Spot = {
   id: string;
   name: string;
   category: string;
-  address: string;
-  city: string;
-  rating: number;
-  reviewCount: number;
-  description: string;
+  address: string | null;
+  city: string | null;
+  rating: number | null;
+  review_count: number | null;
+  description: string | null;
+  created_at: string;
+  is_active: boolean;
 };
-
-const MOCK_SPOTS: MockSpot[] = [
-  {
-    id: "1",
-    name: "鳥取砂丘ドッグラン",
-    category: "dogrun",
-    address: "鳥取県鳥取市福部町湯山",
-    city: "鳥取市",
-    rating: 4.5,
-    reviewCount: 38,
-    description: "砂丘近くの広大なフリーランエリア。大型犬・小型犬エリア分かれています。",
-  },
-  {
-    id: "2",
-    name: "米子わんわんパーク",
-    category: "dogrun",
-    address: "鳥取県米子市車尾",
-    city: "米子市",
-    rating: 4.2,
-    reviewCount: 21,
-    description: "芝生の広場でのびのびと走れます。駐車場完備。",
-  },
-  {
-    id: "3",
-    name: "さくら動物病院 松江",
-    category: "vet",
-    address: "島根県松江市朝日町",
-    city: "松江市",
-    rating: 4.7,
-    reviewCount: 56,
-    description: "夜間・救急対応あり。各種健診・予防接種に対応。",
-  },
-  {
-    id: "4",
-    name: "おおやま動物クリニック",
-    category: "vet",
-    address: "鳥取県米子市旗ヶ崎",
-    city: "米子市",
-    rating: 4.3,
-    reviewCount: 44,
-    description: "土曜午後も診療。小動物全般に対応しています。",
-  },
-  {
-    id: "5",
-    name: "ペットホテル宍道湖",
-    category: "hotel",
-    address: "島根県松江市宍道町",
-    city: "松江市",
-    rating: 4.6,
-    reviewCount: 17,
-    description: "宍道湖を望む静かな環境。個室タイプの客室あり。",
-  },
-  {
-    id: "6",
-    name: "カフェ犬と散歩 鳥取店",
-    category: "restaurant",
-    address: "鳥取県鳥取市栄町",
-    city: "鳥取市",
-    rating: 4.4,
-    reviewCount: 62,
-    description: "テラス席でワンちゃんと一緒に食事OK。ドッグメニューあり。",
-  },
-  {
-    id: "7",
-    name: "ペッツワン 出雲店",
-    category: "shop",
-    address: "島根県出雲市渡橋町",
-    city: "出雲市",
-    rating: 4.0,
-    reviewCount: 29,
-    description: "フード・用品・トリミングサロン併設の総合ペットショップ。",
-  },
-  {
-    id: "8",
-    name: "島根県動物愛護センター",
-    category: "adoption",
-    address: "島根県出雲市西林木町",
-    city: "出雲市",
-    rating: 4.8,
-    reviewCount: 11,
-    description: "保護犬・保護猫の里親募集。見学は事前予約制。",
-  },
-  {
-    id: "9",
-    name: "境港ドッグビーチ",
-    category: "dogrun",
-    address: "鳥取県境港市外江町",
-    city: "境港市",
-    rating: 4.3,
-    reviewCount: 33,
-    description: "海岸沿いのビーチで愛犬と遊べます。夏季は早朝・夕方のみ可。",
-  },
-];
 
 function StarRating({ rating }: { rating: number }) {
   const full = Math.floor(rating);
@@ -162,9 +72,23 @@ export default async function SpotsPage({
   const { category } = await searchParams;
   const activeCategory = category ?? "";
 
-  const filtered = activeCategory
-    ? MOCK_SPOTS.filter((s) => s.category === activeCategory)
-    : MOCK_SPOTS;
+  let query = supabase
+    .from("spots")
+    .select("*")
+    .eq("is_active", true)
+    .order("created_at", { ascending: false });
+
+  if (activeCategory) {
+    query = query.eq("category", activeCategory);
+  }
+
+  const { data: spots, error } = await query;
+
+  if (error) {
+    console.error("[Supabase] spots fetch error:", error);
+  }
+
+  const spotList: Spot[] = spots ?? [];
 
   return (
     <>
@@ -222,17 +146,16 @@ export default async function SpotsPage({
               {activeCategory
                 ? `${CATEGORY_LABELS[activeCategory] ?? ""} `
                 : "すべてのカテゴリ "}
-              <span className="font-semibold text-foreground">{filtered.length}件</span>
-              （モックデータ）
+              <span className="font-semibold text-foreground">{spotList.length}件</span>
             </p>
 
-            {filtered.length === 0 ? (
+            {spotList.length === 0 ? (
               <div className="py-20 text-center text-subtext text-sm">
                 このカテゴリのスポットは現在準備中です
               </div>
             ) : (
               <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {filtered.map((spot) => {
+                {spotList.map((spot) => {
                   const badgeColor = CATEGORY_COLORS[spot.category] ?? { bg: "#E2E2E2", text: "#444" };
                   return (
                     <li key={spot.id}>
@@ -246,7 +169,7 @@ export default async function SpotsPage({
                             className="absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full"
                             style={{ backgroundColor: badgeColor.bg, color: badgeColor.text }}
                           >
-                            {CATEGORY_LABELS[spot.category]}
+                            {CATEGORY_LABELS[spot.category] ?? spot.category}
                           </span>
                         </div>
 
@@ -255,17 +178,25 @@ export default async function SpotsPage({
                           <p className="font-bold text-sm sm:text-base text-foreground leading-snug">
                             {spot.name}
                           </p>
-                          <div className="flex items-center gap-2">
-                            <StarRating rating={spot.rating} />
-                            <span className="text-xs text-subtext font-en">
-                              {spot.rating.toFixed(1)}
-                              <span className="ml-1">({spot.reviewCount})</span>
-                            </span>
-                          </div>
-                          <p className="text-xs text-subtext">{spot.address}</p>
-                          <p className="text-xs text-subtext line-clamp-2 leading-relaxed mt-1">
-                            {spot.description}
-                          </p>
+                          {spot.rating != null && (
+                            <div className="flex items-center gap-2">
+                              <StarRating rating={spot.rating} />
+                              <span className="text-xs text-subtext font-en">
+                                {spot.rating.toFixed(1)}
+                                {spot.review_count != null && (
+                                  <span className="ml-1">({spot.review_count})</span>
+                                )}
+                              </span>
+                            </div>
+                          )}
+                          {spot.address && (
+                            <p className="text-xs text-subtext">{spot.address}</p>
+                          )}
+                          {spot.description && (
+                            <p className="text-xs text-subtext line-clamp-2 leading-relaxed mt-1">
+                              {spot.description}
+                            </p>
+                          )}
                           <span className="mt-auto pt-2 text-xs sm:text-sm font-semibold text-accent">
                             詳細を見る →
                           </span>
