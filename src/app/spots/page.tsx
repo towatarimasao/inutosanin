@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import Header from "@/app/_components/Header";
 import Footer from "@/app/_components/Footer";
@@ -60,6 +61,7 @@ type Spot = {
   rating: number | null;
   review_count: number | null;
   description: string | null;
+  photo_url: string | null;
   created_at: string;
   is_active: boolean;
 };
@@ -243,11 +245,21 @@ export default async function SpotsPage({
                     <li key={spot.id}>
                       <Link href={`/spots/${spot.id}`} className="flex flex-col bg-white rounded-2xl overflow-hidden border border-accent/10 hover:shadow-lg transition-all duration-200 h-full">
 
-                        {/* 画像プレースホルダー */}
-                        <div className="relative aspect-video bg-[#E2EEE8] flex items-center justify-center">
-                          <span className="text-4xl opacity-30">🐾</span>
+                        {/* 画像エリア */}
+                        <div className="relative aspect-video bg-[#E2EEE8] flex items-center justify-center overflow-hidden">
+                          {spot.photo_url ? (
+                            <Image
+                              src={spot.photo_url}
+                              alt={spot.name}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            />
+                          ) : (
+                            <span className="text-4xl opacity-30">🐾</span>
+                          )}
                           <span
-                            className="absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full"
+                            className="absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full z-10"
                             style={{ backgroundColor: badgeColor.bg, color: badgeColor.text }}
                           >
                             {CATEGORY_LABELS[spot.category] ?? spot.category}

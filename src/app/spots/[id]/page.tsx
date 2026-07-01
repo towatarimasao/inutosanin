@@ -41,6 +41,7 @@ type Spot = {
   review_count: number | null;
   description: string | null;
   image_url: string | null;
+  photo_url: string | null;
   business_hours: string | null;
   phone: string | null;
   parking: boolean | null;
@@ -150,9 +151,9 @@ export default async function SpotDetailPage({
 
           {/* 2. メイン画像エリア */}
           <div className="relative aspect-video rounded-2xl overflow-hidden bg-[#E2EEE8] flex items-center justify-center mb-8">
-            {s.image_url ? (
+            {(s.photo_url || s.image_url) ? (
               <Image
-                src={s.image_url}
+                src={(s.photo_url || s.image_url)!}
                 alt={s.name}
                 fill
                 className="object-cover"
