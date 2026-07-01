@@ -154,7 +154,7 @@ export default async function Home() {
             {noteTopics.length === 0 ? (
               <p className="text-subtext text-center py-10">準備中</p>
             ) : (
-              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <ul className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {noteTopics.map((article, i) => (
                   <li key={i}>
                     <a
@@ -186,15 +186,15 @@ export default async function Home() {
                         <span className="font-en text-xs font-semibold text-accent">
                           {formatPubDate(article.pubDate)}
                         </span>
-                        <p className="font-bold text-base text-foreground line-clamp-2 leading-snug">
+                        <p className="font-bold text-sm sm:text-base text-foreground line-clamp-2 leading-snug">
                           {article.title}
                         </p>
                         {article.excerpt && (
-                          <p className="text-sm text-subtext line-clamp-3 leading-relaxed">
+                          <p className="text-xs sm:text-sm text-subtext line-clamp-3 leading-relaxed">
                             {article.excerpt}
                           </p>
                         )}
-                        <span className="mt-auto pt-2 text-sm font-semibold text-accent group-hover:underline">
+                        <span className="mt-auto pt-2 text-xs sm:text-sm font-semibold text-accent group-hover:underline">
                           続きを読む →
                         </span>
                       </div>
