@@ -37,6 +37,20 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
   adoption:   { bg: "#F5D0B5", text: "#7A3D10" },
 };
 
+// 地域定義
+const PREFECTURES = [
+  { slug: "",        label: "全て" },
+  { slug: "tottori", label: "鳥取県" },
+  { slug: "shimane", label: "島根県" },
+];
+
+const CITIES: Record<string, string[]> = {
+  tottori: ["鳥取市", "米子市", "倉吉市", "境港市", "岩美町", "三朝町", "琴浦町", "北栄町", "大山町", "南部町", "伯耆町", "日吉津村", "若桜町", "智頭町"],
+  shimane: ["松江市", "出雲市", "浜田市", "益田市", "安来市", "雲南市", "大田市", "江津市", "奥出雲町", "飯南町", "川本町", "美郷町", "邑南町", "津和野町", "吉賀町", "海士町", "西ノ島町", "知夫村", "隠岐の島町"],
+};
+
+const PREFECTURE_LABEL: Record<string, string> = { tottori: "鳥取県", shimane: "島根県" };
+
 type Spot = {
   id: string;
   name: string;
@@ -49,6 +63,14 @@ type Spot = {
   created_at: string;
   is_active: boolean;
 };
+
+// 現在のフィルターを保ちつつ特定パラメータだけ変えたURLを生成
+function buildUrl(params: Record<string, string>): string {
+  const sp = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => { if (v) sp.set(k, v); });
+  const qs = sp.toString();
+  return qs ? `/spots?${qs}` : "/spots";
+}
 
 function StarRating({ rating }: { rating: number }) {
   const full = Math.floor(rating);
@@ -64,13 +86,19 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
+const PILL_BASE = "whitespace-nowrap text-sm font-medium px-4 py-1.5 rounded-full border transition-all";
+const PILL_ACTIVE = "bg-accent text-white border-accent";
+const PILL_INACTIVE = "border-foreground/15 text-foreground hover:border-accent/30 hover:text-accent";
+
 export default async function SpotsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ category?: string; prefecture?: string; city?: string }>;
 }) {
-  const { category } = await searchParams;
-  const activeCategory = category ?? "";
+  const { category, prefecture, city } = await searchParams;
+  const activeCategory   = category   ?? "";
+  const activePrefecture = prefecture ?? "";
+  const activeCity       = city       ?? "";
 
   let query = supabase
     .from("spots")
@@ -78,17 +106,18 @@ export default async function SpotsPage({
     .eq("is_active", true)
     .order("created_at", { ascending: false });
 
-  if (activeCategory) {
-    query = query.eq("category", activeCategory);
+  if (activeCategory)   query = query.eq("category", activeCategory);
+  if (activeCity)       query = query.ilike("address", `%${activeCity}%`);
+  else if (activePrefecture) {
+    const prefLabel = PREFECTURE_LABEL[activePrefecture];
+    if (prefLabel) query = query.ilike("address", `%${prefLabel}%`);
   }
 
   const { data: spots, error } = await query;
-
-  if (error) {
-    console.error("[Supabase] spots fetch error:", error);
-  }
-
+  if (error) console.error("[Supabase] spots fetch error:", error);
   const spotList: Spot[] = spots ?? [];
+
+  const cityList = activePrefecture ? CITIES[activePrefecture] ?? [] : [];
 
   return (
     <>
@@ -109,25 +138,69 @@ export default async function SpotsPage({
           </div>
         </section>
 
-        {/* カテゴリフィルタータブ */}
+        {/* フィルターエリア */}
         <section className="bg-[#FAF6F1] border-b border-foreground/10 sticky top-0 z-30">
           <div className="max-w-5xl mx-auto px-4 sm:px-6">
-            <nav
-              aria-label="カテゴリフィルター"
-              className="flex gap-1 overflow-x-auto py-3 scrollbar-none"
-            >
+
+            {/* 1段目：都道府県フィルター */}
+            <nav aria-label="都道府県フィルター" className="flex gap-1 overflow-x-auto pt-3 pb-2 scrollbar-none">
+              {PREFECTURES.map((pref) => {
+                const isActive = activePrefecture === pref.slug;
+                const href = buildUrl({
+                  category: activeCategory,
+                  prefecture: pref.slug,
+                  city: "",
+                });
+                return (
+                  <Link
+                    key={pref.slug}
+                    href={href}
+                    className={`${PILL_BASE} ${isActive ? PILL_ACTIVE : PILL_INACTIVE}`}
+                  >
+                    {pref.label}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* 2段目：市町村フィルター（県選択時のみ） */}
+            {cityList.length > 0 && (
+              <nav aria-label="市町村フィルター" className="flex flex-wrap gap-1 pb-3">
+                <Link
+                  href={buildUrl({ category: activeCategory, prefecture: activePrefecture, city: "" })}
+                  className={`${PILL_BASE} ${activeCity === "" ? PILL_ACTIVE : PILL_INACTIVE}`}
+                >
+                  全て
+                </Link>
+                {cityList.map((c) => {
+                  const isActive = activeCity === c;
+                  return (
+                    <Link
+                      key={c}
+                      href={buildUrl({ category: activeCategory, prefecture: activePrefecture, city: c })}
+                      className={`${PILL_BASE} ${isActive ? PILL_ACTIVE : PILL_INACTIVE}`}
+                    >
+                      {c}
+                    </Link>
+                  );
+                })}
+              </nav>
+            )}
+
+            {/* 3段目：カテゴリフィルター */}
+            <nav aria-label="カテゴリフィルター" className="flex gap-1 overflow-x-auto py-3 scrollbar-none border-t border-foreground/5">
               {CATEGORIES.map((cat) => {
                 const isActive = activeCategory === cat.slug;
-                const href = cat.slug ? `/spots?category=${cat.slug}` : "/spots";
+                const href = buildUrl({
+                  category: cat.slug,
+                  prefecture: activePrefecture,
+                  city: activeCity,
+                });
                 return (
                   <Link
                     key={cat.slug}
                     href={href}
-                    className={`whitespace-nowrap text-sm font-medium px-4 py-1.5 rounded-full border transition-all ${
-                      isActive
-                        ? "bg-accent text-white border-accent"
-                        : "border-foreground/15 text-foreground hover:border-accent/30 hover:text-accent"
-                    }`}
+                    className={`${PILL_BASE} ${isActive ? PILL_ACTIVE : PILL_INACTIVE}`}
                   >
                     {cat.label}
                   </Link>
@@ -143,15 +216,17 @@ export default async function SpotsPage({
 
             {/* 件数表示 */}
             <p className="text-sm text-subtext mb-6">
-              {activeCategory
-                ? `${CATEGORY_LABELS[activeCategory] ?? ""} `
-                : "すべてのカテゴリ "}
+              {[
+                activeCity || (activePrefecture ? PREFECTURE_LABEL[activePrefecture] : ""),
+                activeCategory ? CATEGORY_LABELS[activeCategory] : "",
+              ].filter(Boolean).join(" / ") || "すべて"}
+              {" "}
               <span className="font-semibold text-foreground">{spotList.length}件</span>
             </p>
 
             {spotList.length === 0 ? (
               <div className="py-20 text-center text-subtext text-sm">
-                このカテゴリのスポットは現在準備中です
+                条件に合うスポットは現在準備中です
               </div>
             ) : (
               <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -164,7 +239,6 @@ export default async function SpotsPage({
                         {/* 画像プレースホルダー */}
                         <div className="relative aspect-video bg-[#E2EEE8] flex items-center justify-center">
                           <span className="text-4xl opacity-30">🐾</span>
-                          {/* カテゴリバッジ */}
                           <span
                             className="absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full"
                             style={{ backgroundColor: badgeColor.bg, color: badgeColor.text }}
