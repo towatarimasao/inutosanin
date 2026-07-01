@@ -141,12 +141,21 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const prefecture = searchParams.get("prefecture"); // "tottori" | "shimane" | null（全件）
 
-  const targetCities = prefecture
+  const from = searchParams.has("from") ? parseInt(searchParams.get("from")!, 10) : undefined;
+  const to   = searchParams.has("to")   ? parseInt(searchParams.get("to")!,   10) : undefined;
+
+  let targetCities = prefecture
     ? CITIES.filter((c) => c.prefecture === prefecture)
     : CITIES;
 
   if (prefecture && targetCities.length === 0) {
     return NextResponse.json({ error: `不明なprefecture: ${prefecture}` }, { status: 400 });
+  }
+
+  if (from !== undefined || to !== undefined) {
+    const start = from ?? 0;
+    const end   = to !== undefined ? to + 1 : targetCities.length;
+    targetCities = targetCities.slice(start, end);
   }
 
   const errors: string[] = [];
