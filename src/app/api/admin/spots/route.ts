@@ -39,7 +39,10 @@ export async function POST(req: NextRequest) {
       is_active:     true,
     });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[admin/spots POST] INSERT失敗:", error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json({ ok: true });
 }
 
