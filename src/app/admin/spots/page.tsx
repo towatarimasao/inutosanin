@@ -20,11 +20,12 @@ type Spot = {
   name: string;
   category: string;
   address: string | null;
+  photo_url: string | null;
   is_active: boolean;
   created_at: string;
 };
 
-type EditForm = { name: string; category: string; address: string };
+type EditForm = { name: string; category: string; address: string; photo_url: string };
 
 type AddForm = {
   name: string;
@@ -102,9 +103,10 @@ function EditModal({
   onSave: (id: string, form: EditForm) => Promise<void>;
 }) {
   const [form, setForm] = useState<EditForm>({
-    name:     spot.name,
-    category: spot.category,
-    address:  spot.address ?? "",
+    name:      spot.name,
+    category:  spot.category,
+    address:   spot.address ?? "",
+    photo_url: spot.photo_url ?? "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -147,6 +149,16 @@ function EditModal({
           <input
             value={form.address}
             onChange={(e) => setForm({ ...form, address: e.target.value })}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">写真URL</label>
+          <input
+            value={form.photo_url}
+            onChange={(e) => setForm({ ...form, photo_url: e.target.value })}
+            placeholder="https://..."
             className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
           />
         </div>

@@ -24,11 +24,11 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await req.json();
-  const { name, category, address } = body;
+  const { name, category, address, photo_url } = body;
 
   const { error } = await getServiceClient()
     .from("spots")
-    .update({ name, category, address })
+    .update({ name, category, address, photo_url: photo_url || null })
     .eq("id", id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
