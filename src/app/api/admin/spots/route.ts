@@ -34,8 +34,7 @@ export async function POST(req: NextRequest) {
       address:       address       || null,
       phone:         phone         || null,
       business_hours: opening_hours || null,
-      google_maps_url: google_maps_url || null,
-      url:           website_url   || null,
+      url:           website_url || google_maps_url || null,
       is_active:     true,
     });
 
