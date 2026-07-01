@@ -48,6 +48,13 @@ export default function Footer() {
           © 2025 イヌとサンイン
         </div>
 
+        {/* 管理リンク（目立たせない） */}
+        <div className="text-center">
+          <Link href="/admin/spots" className="text-[10px] text-foreground/20 hover:text-foreground/40 transition-colors">
+            管理
+          </Link>
+        </div>
+
       </div>
     </footer>
   );
