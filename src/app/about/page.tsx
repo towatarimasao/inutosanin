@@ -89,6 +89,24 @@ export default function AboutPage() {
             </dl>
           </section>
 
+          {/* 免責事項 */}
+          <section className="mb-12">
+            <h2 className="text-xl font-bold text-[#2C2C2A] mb-4 pb-2 border-b border-gray-200">
+              免責事項
+            </h2>
+            <ul className="flex flex-col gap-4 text-[#2C2C2A] leading-relaxed text-sm">
+              <li>
+                「ペット用品店」カテゴリには、コンビニエンスストア・スーパーマーケット・100円均一ショップなど、犬用品の取り扱いが少ない、またはほとんどない店舗が含まれる場合があります。ご来店の際は事前にご確認いただくことをお勧めします。
+              </li>
+              <li>
+                掲載している営業時間・電話番号・住所などの情報は、情報取得時点のものであり、現在の状況と異なる場合があります。最新情報は各施設の公式サイトや直接のお問い合わせにてご確認ください。
+              </li>
+              <li>
+                当サイトに掲載された情報の正確性・完全性について、運営者は可能な限り正確な情報の提供に努めておりますが、その内容を保証するものではございません。掲載情報に起因して生じた損害について、当サイトは責任を負いかねますので、あらかじめご了承ください。
+              </li>
+            </ul>
+          </section>
+
           {/* お問い合わせ */}
           <section className="mb-12">
             <h2 className="text-xl font-bold text-[#2C2C2A] mb-4 pb-2 border-b border-gray-200">
