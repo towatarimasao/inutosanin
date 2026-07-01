@@ -26,6 +26,21 @@ type Spot = {
 
 type EditForm = { name: string; category: string; address: string };
 
+type AddForm = {
+  name: string;
+  category: string;
+  address: string;
+  phone: string;
+  opening_hours: string;
+  google_maps_url: string;
+  website_url: string;
+};
+
+const EMPTY_ADD_FORM: AddForm = {
+  name: "", category: "dogrun", address: "",
+  phone: "", opening_hours: "", google_maps_url: "", website_url: "",
+};
+
 function adminFetch(path: string, options: RequestInit = {}) {
   return fetch(path, {
     ...options,
@@ -156,6 +171,92 @@ function EditModal({
   );
 }
 
+// ── 追加モーダル ────────────────────────────────────────────
+function AddModal({
+  onClose,
+  onAdd,
+}: {
+  onClose: () => void;
+  onAdd: (form: AddForm) => Promise<void>;
+}) {
+  const [form, setForm] = useState<AddForm>(EMPTY_ADD_FORM);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+
+  function set(key: keyof AddForm, value: string) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function handleSave() {
+    if (!form.name.trim()) { setErr("名前は必須です"); return; }
+    setSaving(true);
+    setErr("");
+    await onAdd(form);
+    setSaving(false);
+    onClose();
+  }
+
+  const fields: { key: keyof AddForm; label: string; placeholder?: string }[] = [
+    { key: "name",            label: "名前 *",    placeholder: "例：鳥取砂丘ドッグラン" },
+    { key: "address",         label: "住所",      placeholder: "例：鳥取県鳥取市福部町" },
+    { key: "phone",           label: "電話番号",  placeholder: "例：0857-00-0000" },
+    { key: "opening_hours",   label: "営業時間",  placeholder: "例：9:00〜17:00" },
+    { key: "google_maps_url", label: "Google Maps URL" },
+    { key: "website_url",     label: "公式サイトURL" },
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+        <h2 className="font-bold text-gray-800">スポットを追加</h2>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">カテゴリ *</label>
+          <select
+            value={form.category}
+            onChange={(e) => set("category", e.target.value)}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          >
+            {CATEGORIES.map((c) => (
+              <option key={c.slug} value={c.slug}>{c.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {fields.map(({ key, label, placeholder }) => (
+          <div key={key} className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500">{label}</label>
+            <input
+              value={form[key]}
+              onChange={(e) => set(key, e.target.value)}
+              placeholder={placeholder}
+              className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+            />
+          </div>
+        ))}
+
+        {err && <p className="text-red-500 text-xs">{err}</p>}
+
+        <div className="flex gap-2 justify-end mt-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm rounded border border-gray-300 hover:bg-gray-50 transition"
+          >
+            キャンセル
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-4 py-2 text-sm rounded bg-gray-800 text-white hover:bg-gray-700 transition disabled:opacity-50"
+          >
+            {saving ? "保存中…" : "追加"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── メイン管理画面 ──────────────────────────────────────────
 function AdminContent() {
   const [spots, setSpots]           = useState<Spot[]>([]);
@@ -164,6 +265,7 @@ function AdminContent() {
   const [filterCat, setFilterCat]   = useState("");
   const [editTarget, setEditTarget] = useState<Spot | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Spot | null>(null);
+  const [showAdd, setShowAdd]       = useState(false);
 
   async function loadSpots() {
     setLoading(true);
@@ -182,6 +284,14 @@ function AdminContent() {
       return matchSearch && matchCat;
     });
   }, [spots, search, filterCat]);
+
+  async function handleAdd(form: AddForm) {
+    await adminFetch("/api/admin/spots", {
+      method: "POST",
+      body: JSON.stringify(form),
+    });
+    await loadSpots();
+  }
 
   async function handleSave(id: string, form: EditForm) {
     await adminFetch(`/api/admin/spots/${id}`, {
@@ -203,7 +313,15 @@ function AdminContent() {
 
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl font-bold text-gray-800">スポット管理</h1>
-          <span className="text-sm text-gray-500">{filtered.length} 件表示</span>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500">{filtered.length} 件表示</span>
+            <button
+              onClick={() => setShowAdd(true)}
+              className="px-4 py-2 text-sm rounded bg-gray-800 text-white hover:bg-gray-700 transition"
+            >
+              ＋ スポットを追加
+            </button>
+          </div>
         </div>
 
         {/* 検索・フィルター */}
@@ -283,6 +401,14 @@ function AdminContent() {
           </div>
         )}
       </div>
+
+      {/* 追加モーダル */}
+      {showAdd && (
+        <AddModal
+          onClose={() => setShowAdd(false)}
+          onAdd={handleAdd}
+        />
+      )}
 
       {/* 編集モーダル */}
       {editTarget && (

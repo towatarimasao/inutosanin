@@ -14,6 +14,35 @@ function isAuthorized(req: NextRequest): boolean {
   return req.headers.get("x-admin-password") === ADMIN_PASSWORD;
 }
 
+export async function POST(req: NextRequest) {
+  if (!isAuthorized(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await req.json();
+  const { name, category, address, phone, opening_hours, google_maps_url, website_url } = body;
+
+  if (!name || !category) {
+    return NextResponse.json({ error: "name と category は必須です" }, { status: 400 });
+  }
+
+  const { error } = await getServiceClient()
+    .from("spots")
+    .insert({
+      name,
+      category,
+      address:       address       || null,
+      phone:         phone         || null,
+      opening_hours: opening_hours || null,
+      google_maps_url: google_maps_url || null,
+      url:           website_url   || null,
+      is_active:     true,
+    });
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true });
+}
+
 export async function GET(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
