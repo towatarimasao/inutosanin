@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       category,
       address:       address       || null,
       phone:         phone         || null,
-      opening_hours: opening_hours || null,
+      business_hours: opening_hours || null,
       google_maps_url: google_maps_url || null,
       url:           website_url   || null,
       is_active:     true,
