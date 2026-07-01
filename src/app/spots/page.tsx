@@ -159,7 +159,7 @@ export default async function SpotsPage({
                   const badgeColor = CATEGORY_COLORS[spot.category] ?? { bg: "#E2E2E2", text: "#444" };
                   return (
                     <li key={spot.id}>
-                      <div className="flex flex-col bg-white rounded-2xl overflow-hidden border border-accent/10 hover:shadow-lg transition-all duration-200 h-full">
+                      <Link href={`/spots/${spot.id}`} className="flex flex-col bg-white rounded-2xl overflow-hidden border border-accent/10 hover:shadow-lg transition-all duration-200 h-full">
 
                         {/* 画像プレースホルダー */}
                         <div className="relative aspect-video bg-[#E2EEE8] flex items-center justify-center">
@@ -201,7 +201,7 @@ export default async function SpotsPage({
                             詳細を見る →
                           </span>
                         </div>
-                      </div>
+                      </Link>
                     </li>
                   );
                 })}
