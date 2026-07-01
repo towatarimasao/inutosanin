@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await getServiceClient()
     .from("spots")
-    .select("id, name, category, address, photo_url, is_active, created_at")
+    .select("id, name, category, address, phone, business_hours, url, photo_url, is_active, created_at")
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

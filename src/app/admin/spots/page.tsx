@@ -20,12 +20,23 @@ type Spot = {
   name: string;
   category: string;
   address: string | null;
+  phone: string | null;
+  business_hours: string | null;
+  url: string | null;
   photo_url: string | null;
   is_active: boolean;
   created_at: string;
 };
 
-type EditForm = { name: string; category: string; address: string; photo_url: string };
+type EditForm = {
+  name: string;
+  category: string;
+  address: string;
+  phone: string;
+  business_hours: string;
+  url: string;
+  photo_url: string;
+};
 
 type AddForm = {
   name: string;
@@ -103,10 +114,13 @@ function EditModal({
   onSave: (id: string, form: EditForm) => Promise<void>;
 }) {
   const [form, setForm] = useState<EditForm>({
-    name:      spot.name,
-    category:  spot.category,
-    address:   spot.address ?? "",
-    photo_url: spot.photo_url ?? "",
+    name:           spot.name,
+    category:       spot.category,
+    address:        spot.address        ?? "",
+    phone:          spot.phone          ?? "",
+    business_hours: spot.business_hours ?? "",
+    url:            spot.url            ?? "",
+    photo_url:      spot.photo_url      ?? "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -119,7 +133,7 @@ function EditModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 flex flex-col gap-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
         <h2 className="font-bold text-gray-800">スポットを編集</h2>
 
         <div className="flex flex-col gap-1">
@@ -149,6 +163,36 @@ function EditModal({
           <input
             value={form.address}
             onChange={(e) => setForm({ ...form, address: e.target.value })}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">電話番号</label>
+          <input
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            placeholder="例：0857-00-0000"
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">営業時間</label>
+          <input
+            value={form.business_hours}
+            onChange={(e) => setForm({ ...form, business_hours: e.target.value })}
+            placeholder="例：9:00〜17:00"
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">公式サイトURL</label>
+          <input
+            value={form.url}
+            onChange={(e) => setForm({ ...form, url: e.target.value })}
+            placeholder="https://..."
             className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
           />
         </div>
