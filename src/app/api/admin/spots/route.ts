@@ -50,11 +50,28 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data, error } = await getServiceClient()
-    .from("spots")
-    .select("id, name, category, address, phone, business_hours, url, photo_url, listing_status, is_active, created_at")
-    .order("created_at", { ascending: false });
+  const client = getServiceClient();
+  const PAGE_SIZE = 1000;
+  const allSpots: Record<string, unknown>[] = [];
+  let page = 0;
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
+  while (true) {
+    const from = page * PAGE_SIZE;
+    const to   = from + PAGE_SIZE - 1;
+
+    const { data, error } = await client
+      .from("spots")
+      .select("id, name, category, address, phone, business_hours, url, photo_url, listing_status, is_active, created_at")
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    allSpots.push(...(data ?? []));
+
+    if ((data ?? []).length < PAGE_SIZE) break;
+    page++;
+  }
+
+  return NextResponse.json(allSpots);
 }
