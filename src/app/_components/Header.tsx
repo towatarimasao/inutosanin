@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const spotItems = [
   { label: "スポット一覧", href: "/spots" },
@@ -24,6 +24,17 @@ const mobileMenuItems = [
 export default function Header() {
   const [spotsOpen, setSpotsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setSpotsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   return (
     <div className="relative">
@@ -44,14 +55,14 @@ export default function Header() {
 
           {/* スポットを探す ドロップダウン */}
           <div
+            ref={dropdownRef}
             className="relative"
-            onMouseEnter={() => setSpotsOpen(true)}
-            onMouseLeave={() => setSpotsOpen(false)}
           >
             <button
               className="flex items-center gap-1 border border-foreground/15 rounded-full px-4 py-1.5 text-sm hover:bg-accent/10 hover:border-accent/30 hover:text-accent transition-all"
               aria-haspopup="true"
               aria-expanded={spotsOpen}
+              onClick={() => setSpotsOpen((prev) => !prev)}
             >
               スポットを探す
               <svg
@@ -67,12 +78,13 @@ export default function Header() {
 
             {/* ドロップダウンメニュー */}
             {spotsOpen && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-44 bg-[#FAF6F1] rounded-xl shadow-lg border border-accent/10 py-1 z-50">
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0 w-44 bg-[#FAF6F1] rounded-xl shadow-lg border border-accent/10 py-1 z-50">
                 {spotItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     className="block px-4 py-2 text-sm text-foreground hover:text-accent hover:bg-accent/5 transition-colors"
+                    onClick={() => setSpotsOpen(false)}
                   >
                     {item.label}
                   </Link>
