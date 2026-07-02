@@ -18,7 +18,8 @@ export default function ConfirmSpotsClient({ spots }: { spots: PendingSpot[] }) 
   const [checked, setChecked]     = useState<Set<string>>(new Set());
   const [filterCat, setFilterCat] = useState("");
   const [email, setEmail]         = useState("");
-  const [nickname, setNickname]   = useState("");
+  const [nickname, setNickname]       = useState("");
+  const [consentPublic, setConsentPublic] = useState(false);
   const [honeypot, setHoneypot]   = useState("");
   const [status, setStatus]       = useState<Status>("idle");
   const [emailError, setEmailError] = useState("");
@@ -81,6 +82,7 @@ export default function ConfirmSpotsClient({ spots }: { spots: PendingSpot[] }) 
           spotIds:  Array.from(checked),
           email,
           nickname,
+          consentPublic,
           honeypot,
         }),
       });
@@ -274,6 +276,18 @@ export default function ConfirmSpotsClient({ spots }: { spots: PendingSpot[] }) 
               style={{ borderColor: "#C8BFB5", color: "#2A2521" }}
             />
           </div>
+
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={consentPublic}
+              onChange={(e) => setConsentPublic(e.target.checked)}
+              className="w-4 h-4 rounded accent-[#D2691E]"
+            />
+            <span className="text-sm" style={{ color: "#2A2521" }}>
+              ニックネームをスペシャルサンクスページに掲載してもよい
+            </span>
+          </label>
         </div>
 
         {/* 送信ボタン */}

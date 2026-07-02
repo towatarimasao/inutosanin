@@ -26,7 +26,8 @@ export default function SuggestSpotPage() {
   const [phone, setPhone]       = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [email, setEmail]       = useState("");
-  const [nickname, setNickname] = useState("");
+  const [nickname, setNickname]           = useState("");
+  const [consentPublic, setConsentPublic] = useState(false);
   const [honeypot, setHoneypot] = useState("");
   const [status, setStatus]     = useState<Status>("idle");
   const [errors, setErrors]     = useState<Record<string, string>>({});
@@ -57,7 +58,7 @@ export default function SuggestSpotPage() {
         body: JSON.stringify({
           genre, name, address, phone,
           isConfirmedByVisitor: confirmed,
-          email, nickname, honeypot,
+          email, nickname, consentPublic, honeypot,
         }),
       });
       setStatus(res.ok ? "done" : "error");
@@ -224,6 +225,18 @@ export default function SuggestSpotPage() {
               style={INPUT_STYLE}
             />
           </div>
+
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={consentPublic}
+              onChange={(e) => setConsentPublic(e.target.checked)}
+              className="w-4 h-4 rounded accent-[#D2691E]"
+            />
+            <span className="text-sm" style={{ color: "#2A2521" }}>
+              ニックネームをスペシャルサンクスページに掲載してもよい
+            </span>
+          </label>
         </div>
 
         {/* エラー・送信 */}

@@ -29,10 +29,11 @@ async function fetchSpotNames(spotIds: string[]): Promise<Record<string, string>
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { spotIds, email, nickname, honeypot } = body as {
+  const { spotIds, email, nickname, consentPublic, honeypot } = body as {
     spotIds: string[];
     email: string;
     nickname: string;
+    consentPublic: boolean;
     honeypot: string;
   };
 
@@ -54,6 +55,7 @@ export async function POST(req: NextRequest) {
     spot_id:          spotId,
     contact_email:    email,
     contact_nickname: nickname || null,
+    consent_public:   consentPublic ?? false,
   }));
 
   const { error } = await getServiceClient()

@@ -27,7 +27,7 @@ function isValidEmail(email: string): boolean {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { genre, name, address, phone, isConfirmedByVisitor, email, nickname, honeypot } = body as {
+  const { genre, name, address, phone, isConfirmedByVisitor, email, nickname, consentPublic, honeypot } = body as {
     genre: string;
     name: string;
     address: string;
@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
     isConfirmedByVisitor: boolean;
     email: string;
     nickname: string;
+    consentPublic: boolean;
     honeypot: string;
   };
 
@@ -62,6 +63,7 @@ export async function POST(req: NextRequest) {
       is_confirmed_by_visitor: isConfirmedByVisitor ?? false,
       contact_email:           email,
       contact_nickname:        nickname || null,
+      consent_public:          consentPublic ?? false,
     });
 
   if (error) {

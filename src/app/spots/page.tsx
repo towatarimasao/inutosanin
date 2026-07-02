@@ -304,6 +304,29 @@ export default async function SpotsPage({
           </div>
         </section>
 
+        {/* 投稿・報告ボタン */}
+        <section className="px-4 sm:px-6 py-10 border-t border-foreground/10">
+          <div className="max-w-5xl mx-auto text-center flex flex-col items-center gap-5">
+            <p className="text-sm text-subtext">
+              載っていないお店がありましたか？情報をお寄せください。
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/confirm-spots"
+                className="inline-flex items-center justify-center gap-1.5 border-2 border-accent text-accent hover:bg-accent hover:text-white text-sm font-semibold px-6 py-2.5 rounded-full transition-all"
+              >
+                🐾 犬同伴OK情報を報告する
+              </Link>
+              <Link
+                href="/suggest-spot"
+                className="inline-flex items-center justify-center gap-1.5 bg-accent text-white hover:bg-accent/90 text-sm font-semibold px-6 py-2.5 rounded-full transition-all"
+              >
+                ＋ スポットを投稿する
+              </Link>
+            </div>
+          </div>
+        </section>
+
       </main>
 
       <Footer />
