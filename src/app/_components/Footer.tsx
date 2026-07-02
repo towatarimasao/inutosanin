@@ -12,6 +12,7 @@ const footerLinks = [
   { label: "トピックス", href: "/#topics" },
   { label: "このサイトについて", href: "/about" },
   { label: "お問い合わせ", href: "#" },
+  { label: "スペシャルサンクス", href: "/thanks" },
 ];
 
 export default function Footer() {
