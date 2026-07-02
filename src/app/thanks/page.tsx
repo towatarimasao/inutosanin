@@ -4,6 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 import Header from "@/app/_components/Header";
 import Footer from "@/app/_components/Footer";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "スペシャルサンクス | イヌとサンイン",
   description: "スポット情報をお寄せいただいた皆さまに感謝いたします。",
