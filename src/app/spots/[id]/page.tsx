@@ -64,6 +64,7 @@ export async function generateMetadata({
     .from("spots")
     .select("name, description")
     .eq("id", id)
+    .eq("listing_status", "published")
     .single();
 
   if (!data) return { title: "スポット詳細" };
@@ -85,6 +86,7 @@ export default async function SpotDetailPage({
     .from("spots")
     .select("*")
     .eq("id", id)
+    .eq("listing_status", "published")
     .single();
 
   if (error || !spot) notFound();

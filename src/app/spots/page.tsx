@@ -106,6 +106,7 @@ export default async function SpotsPage({
     .from("spots")
     .select("*")
     .eq("is_active", true)
+    .eq("listing_status", "published")
     .order("created_at", { ascending: false });
 
   if (activeCategory)   query = query.eq("category", activeCategory);
