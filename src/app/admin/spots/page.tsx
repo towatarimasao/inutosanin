@@ -24,6 +24,7 @@ type Spot = {
   business_hours: string | null;
   url: string | null;
   photo_url: string | null;
+  listing_status: string | null;
   is_active: boolean;
   created_at: string;
 };
@@ -318,7 +319,8 @@ function AdminContent() {
   const [spots, setSpots]           = useState<Spot[]>([]);
   const [loading, setLoading]       = useState(true);
   const [search, setSearch]         = useState("");
-  const [filterCat, setFilterCat]   = useState("");
+  const [filterCat, setFilterCat]     = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
   const [editTarget, setEditTarget] = useState<Spot | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Spot | null>(null);
   const [showAdd, setShowAdd]       = useState(false);
@@ -335,11 +337,12 @@ function AdminContent() {
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return spots.filter((s) => {
-      const matchSearch = !q || s.name.toLowerCase().includes(q) || (s.address ?? "").toLowerCase().includes(q);
-      const matchCat    = !filterCat || s.category === filterCat;
-      return matchSearch && matchCat;
+      const matchSearch  = !q || s.name.toLowerCase().includes(q) || (s.address ?? "").toLowerCase().includes(q);
+      const matchCat     = !filterCat || s.category === filterCat;
+      const matchStatus  = !filterStatus || s.listing_status === filterStatus;
+      return matchSearch && matchCat && matchStatus;
     });
-  }, [spots, search, filterCat]);
+  }, [spots, search, filterCat, filterStatus]);
 
   async function handleAdd(form: AddForm) {
     await adminFetch("/api/admin/spots", {
@@ -399,6 +402,15 @@ function AdminContent() {
               <option key={c.slug} value={c.slug}>{c.label}</option>
             ))}
           </select>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          >
+            <option value="">すべて</option>
+            <option value="published">公開中のみ</option>
+            <option value="pending_review">掲載保留のみ</option>
+          </select>
         </div>
 
         {/* テーブル */}
@@ -410,6 +422,7 @@ function AdminContent() {
               <thead>
                 <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
                   <th className="px-4 py-3 font-medium">名前</th>
+                  <th className="px-4 py-3 font-medium">ステータス</th>
                   <th className="px-4 py-3 font-medium">カテゴリ</th>
                   <th className="px-4 py-3 font-medium">住所</th>
                   <th className="px-4 py-3 font-medium w-28">操作</th>
@@ -418,8 +431,17 @@ function AdminContent() {
               <tbody>
                 {filtered.map((spot) => (
                   <tr key={spot.id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-800 max-w-[200px] truncate">
+                    <td className={`px-4 py-3 font-medium max-w-[200px] truncate ${spot.listing_status === "pending_review" ? "text-red-600" : "text-gray-800"}`}>
                       {spot.name}
+                    </td>
+                    <td className="px-4 py-3">
+                      {spot.listing_status === "published" ? (
+                        <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">公開中</span>
+                      ) : spot.listing_status === "pending_review" ? (
+                        <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">掲載保留</span>
+                      ) : (
+                        <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{spot.listing_status ?? "—"}</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {CATEGORY_LABELS[spot.category] ?? spot.category}
@@ -447,7 +469,7 @@ function AdminContent() {
                 ))}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="text-center text-gray-400 py-10 text-sm">
+                    <td colSpan={5} className="text-center text-gray-400 py-10 text-sm">
                       該当するスポットがありません
                     </td>
                   </tr>
