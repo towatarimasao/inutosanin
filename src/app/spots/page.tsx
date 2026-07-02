@@ -213,12 +213,14 @@ export default async function SpotsPage({
           </div>
         </section>
 
-        {/* 注意書き */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4">
-          <p className="text-xs text-subtext/70 leading-relaxed">
-            ※ペット用品店にはコンビニ・スーパー・100円均一など一部不適切な店舗が含まれる場合があります。また、掲載情報は必ずしも最新ではない場合があります。
-          </p>
-        </div>
+        {/* 注意書き：shopカテゴリ選択時のみ表示 */}
+        {activeCategory === 'shop' && (
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4">
+            <p className="text-xs text-subtext/70 leading-relaxed">
+              ※ペット用品店にはコンビニ・スーパー・100円均一など一部不適切な店舗が含まれる場合があります。また、掲載情報は必ずしも最新ではない場合があります。
+            </p>
+          </div>
+        )}
 
         {/* スポット一覧 */}
         <section className="px-4 sm:px-6 py-10">
