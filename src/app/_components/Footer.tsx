@@ -43,7 +43,23 @@ export default function Footer() {
           </nav>
         </div>
 
-        {/* 3段目：コピーライト */}
+        {/* 3段目：投稿ボタン */}
+        <div className="border-t border-foreground/10 pt-6 flex flex-col sm:flex-row gap-3 justify-center">
+          <Link
+            href="/confirm-spots"
+            className="inline-flex items-center justify-center gap-1.5 border-2 border-accent text-accent hover:bg-accent hover:text-white text-sm font-semibold px-6 py-2.5 rounded-full transition-all"
+          >
+            🐾 犬同伴OK情報を報告する
+          </Link>
+          <Link
+            href="/suggest-spot"
+            className="inline-flex items-center justify-center gap-1.5 bg-accent text-white hover:bg-accent/90 text-sm font-semibold px-6 py-2.5 rounded-full transition-all"
+          >
+            ＋ スポットを投稿する
+          </Link>
+        </div>
+
+        {/* 4段目：コピーライト */}
         <div className="border-t border-foreground/10 pt-6 text-xs text-foreground/40 text-center">
           © 2025 イヌとサンイン
         </div>
