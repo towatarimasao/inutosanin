@@ -55,10 +55,10 @@ export async function POST(req: NextRequest) {
     .from("feedback_submissions")
     .insert({
       type:                    "suggest",
-      suggested_genre:         genre,
-      suggested_name:          name.trim(),
-      suggested_address:       address.trim(),
-      suggested_phone:         phone || null,
+      genre:   genre,
+      name:    name.trim(),
+      address: address.trim(),
+      phone:   phone || null,
       is_confirmed_by_visitor: isConfirmedByVisitor ?? false,
       contact_email:           email,
       contact_nickname:        nickname || null,
