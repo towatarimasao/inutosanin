@@ -4,6 +4,7 @@ import { Resend } from "resend";
 
 const NOTIFY_TO   = "info@greatbrain475.com";
 const NOTIFY_FROM = "イヌとサンイン <notify@greatbrain475.com>";
+const SITE_URL    = "https://www.inutosanin.jp";
 
 function getServiceClient() {
   return createClient(
@@ -50,24 +51,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "spotIds が空です" }, { status: 400 });
   }
 
+  // バッチ全体で共通の thank_token を生成
+  const thankToken = crypto.randomUUID();
+
   const rows = spotIds.map((spotId) => ({
     type:             "confirm",
     spot_id:          spotId,
     contact_email:    email,
     contact_nickname: nickname || null,
     consent_public:   consentPublic ?? false,
+    thank_token:      thankToken,
   }));
 
-  const { error } = await getServiceClient()
+  const { data: inserted, error } = await getServiceClient()
     .from("feedback_submissions")
-    .insert(rows);
+    .insert(rows)
+    .select("id");
 
   if (error) {
     console.error("[feedback/confirm] INSERT失敗:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // スポット名を取得してメール送信（失敗してもAPIは200を返す）
+  // お礼メール送信用リンク（最初の行のidを使用）
+  const firstId  = inserted?.[0]?.id as string | undefined;
+  const thankUrl = firstId
+    ? `${SITE_URL}/api/feedback/thank?id=${firstId}&token=${thankToken}`
+    : null;
+
+  // スポット名を取得して通知メール送信（失敗してもAPIは200を返す）
   try {
     const nameMap = await fetchSpotNames(spotIds);
     const spotList = spotIds
@@ -88,6 +100,11 @@ export async function POST(req: NextRequest) {
         "■ 投稿者情報",
         `メールアドレス: ${email}`,
         `ニックネーム: ${nickname || "（未入力）"}`,
+        ...(thankUrl ? [
+          "",
+          "■ お礼メール送信",
+          thankUrl,
+        ] : []),
       ].join("\n"),
     });
 

@@ -4,6 +4,7 @@ import { Resend } from "resend";
 
 const NOTIFY_TO   = "info@greatbrain475.com";
 const NOTIFY_FROM = "イヌとサンイン <notify@greatbrain475.com>";
+const SITE_URL    = "https://www.inutosanin.jp";
 
 const GENRE_LABELS: Record<string, string> = {
   dogrun:     "ドッグラン",
@@ -52,26 +53,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "有効なメールアドレスが必要です" }, { status: 400 });
   }
 
-  const { error } = await getServiceClient()
+  const thankToken = crypto.randomUUID();
+
+  const { data: inserted, error } = await getServiceClient()
     .from("feedback_submissions")
     .insert({
       type:                    "suggest",
-      genre:   genre,
-      name:    name.trim(),
-      address: address.trim(),
-      phone:   phone || null,
+      genre:                   genre,
+      name:                    name.trim(),
+      address:                 address.trim(),
+      phone:                   phone || null,
       is_confirmed_by_visitor: isConfirmedByVisitor ?? false,
       contact_email:           email,
       contact_nickname:        nickname || null,
       consent_public:          consentPublic ?? false,
-    });
+      thank_token:             thankToken,
+    })
+    .select("id");
 
   if (error) {
     console.error("[feedback/suggest] INSERT失敗:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // メール送信（失敗してもAPIは200を返す）
+  const insertedId = inserted?.[0]?.id as string | undefined;
+  const thankUrl   = insertedId
+    ? `${SITE_URL}/api/feedback/thank?id=${insertedId}&token=${thankToken}`
+    : null;
+
+  // 通知メール送信（失敗してもAPIは200を返す）
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
     const { error: mailError } = await resend.emails.send({
@@ -91,6 +101,11 @@ export async function POST(req: NextRequest) {
         "■ 投稿者情報",
         `メールアドレス: ${email}`,
         `ニックネーム: ${nickname || "（未入力）"}`,
+        ...(thankUrl ? [
+          "",
+          "■ お礼メール送信",
+          thankUrl,
+        ] : []),
       ].join("\n"),
     });
 
