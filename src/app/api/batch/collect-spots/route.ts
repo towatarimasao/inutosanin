@@ -187,6 +187,7 @@ export async function GET(request: Request) {
                 url: place.websiteUri ?? null,
                 business_hours: hours,
                 is_active: true,
+                listing_status: "pending_review",
               },
               { onConflict: "google_place_id" }
             );
