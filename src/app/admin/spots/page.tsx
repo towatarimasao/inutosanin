@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useMemo } from "react";
 
-const ADMIN_PASSWORD = "admin1234";
-
 const DOG_SIZE_OPTIONS = [
   { value: "",       label: "指定なし（未入力）" },
   { value: "small",  label: "小型犬のみ" },
@@ -81,49 +79,9 @@ function adminFetch(path: string, options: RequestInit = {}) {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      "x-admin-password": ADMIN_PASSWORD,
       ...options.headers,
     },
   });
-}
-
-// ── パスワード画面 ──────────────────────────────────────────
-function PasswordGate({ onAuth }: { onAuth: () => void }) {
-  const [input, setInput] = useState("");
-  const [error, setError] = useState(false);
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (input === ADMIN_PASSWORD) {
-      onAuth();
-    } else {
-      setError(true);
-      setInput("");
-    }
-  }
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow w-80 flex flex-col gap-4">
-        <h1 className="text-lg font-bold text-gray-800">管理画面ログイン</h1>
-        <input
-          type="password"
-          value={input}
-          onChange={(e) => { setInput(e.target.value); setError(false); }}
-          placeholder="パスワード"
-          className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
-          autoFocus
-        />
-        {error && <p className="text-red-500 text-xs">パスワードが違います</p>}
-        <button
-          type="submit"
-          className="bg-gray-800 text-white rounded px-4 py-2 text-sm hover:bg-gray-700 transition"
-        >
-          ログイン
-        </button>
-      </form>
-    </div>
-  );
 }
 
 // ── 編集モーダル ────────────────────────────────────────────
@@ -627,7 +585,5 @@ function AdminContent() {
 
 // ── ページエントリー ────────────────────────────────────────
 export default function AdminSpotsPage() {
-  const [authed, setAuthed] = useState(false);
-  if (!authed) return <PasswordGate onAuth={() => setAuthed(true)} />;
   return <AdminContent />;
 }

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const ADMIN_PASSWORD = "admin1234";
-
 function getServiceClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,15 +8,7 @@ function getServiceClient() {
   );
 }
 
-function isAuthorized(req: NextRequest): boolean {
-  return req.headers.get("x-admin-password") === ADMIN_PASSWORD;
-}
-
 export async function POST(req: NextRequest) {
-  if (!isAuthorized(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const body = await req.json();
   const { name, category, address, phone, opening_hours, google_maps_url, website_url, pet_condition, dog_size, listing_status } = body;
 
@@ -49,10 +39,6 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  if (!isAuthorized(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const client = getServiceClient();
   const PAGE_SIZE = 1000;
   const allSpots: Record<string, unknown>[] = [];

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import Header from "@/app/_components/Header";
 import Footer from "@/app/_components/Footer";
 import { supabase } from "@/lib/supabase";
+import ReportButton from "./ReportButton";
 
 const CATEGORY_LABELS: Record<string, string> = {
   dogrun:     "ドッグラン",
@@ -271,10 +272,15 @@ export default async function SpotDetailPage({
             </div>
           </div>
 
+          {/* 誤り報告ボタン（vetカテゴリのみ） */}
+          {s.category === "vet" && (
+            <ReportButton spotId={s.id} spotName={s.name} />
+          )}
+
           {/* 戻るリンク（下部） */}
           <Link
             href="/spots"
-            className="inline-flex items-center gap-1 text-sm text-subtext hover:text-accent transition-colors"
+            className="inline-flex items-center gap-1 text-sm text-subtext hover:text-accent transition-colors mt-6 inline-block"
           >
             ← スポット一覧に戻る
           </Link>
