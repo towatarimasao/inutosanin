@@ -61,6 +61,7 @@ type Spot = {
   rating: number | null;
   review_count: number | null;
   description: string | null;
+  pet_condition: string | null;
   photo_url: string | null;
   created_at: string;
   is_active: boolean;
@@ -291,6 +292,11 @@ export default async function SpotsPage({
                           {spot.description && (
                             <p className="text-xs text-subtext line-clamp-2 leading-relaxed mt-1">
                               {spot.description}
+                            </p>
+                          )}
+                          {spot.pet_condition && (
+                            <p className="text-xs text-accent/80 bg-[#F0F7F3] rounded-md px-2 py-1 line-clamp-2 leading-relaxed">
+                              🐾 {spot.pet_condition}
                             </p>
                           )}
                           <span className="mt-auto pt-2 text-xs sm:text-sm font-semibold text-accent">

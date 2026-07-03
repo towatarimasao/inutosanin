@@ -4,6 +4,19 @@ import { useState, useEffect, useMemo } from "react";
 
 const ADMIN_PASSWORD = "admin1234";
 
+const DOG_SIZE_OPTIONS = [
+  { value: "",       label: "指定なし（未入力）" },
+  { value: "small",  label: "小型犬のみ" },
+  { value: "medium", label: "〜中型犬" },
+  { value: "large",  label: "〜大型犬" },
+  { value: "all",    label: "犬種制限なし" },
+];
+
+const LISTING_STATUS_OPTIONS = [
+  { value: "pending_review", label: "掲載保留" },
+  { value: "published",      label: "公開中" },
+];
+
 const CATEGORY_LABELS: Record<string, string> = {
   dogrun:     "ドッグラン",
   vet:        "動物病院",
@@ -25,6 +38,8 @@ type Spot = {
   url: string | null;
   photo_url: string | null;
   listing_status: string | null;
+  pet_condition: string | null;
+  dog_size: string | null;
   is_active: boolean;
   created_at: string;
 };
@@ -37,6 +52,9 @@ type EditForm = {
   business_hours: string;
   url: string;
   photo_url: string;
+  pet_condition: string;
+  listing_status: string;
+  dog_size: string;
 };
 
 type AddForm = {
@@ -47,11 +65,15 @@ type AddForm = {
   opening_hours: string;
   google_maps_url: string;
   website_url: string;
+  pet_condition: string;
+  dog_size: string;
+  listing_status: string;
 };
 
 const EMPTY_ADD_FORM: AddForm = {
   name: "", category: "dogrun", address: "",
   phone: "", opening_hours: "", google_maps_url: "", website_url: "",
+  pet_condition: "", dog_size: "", listing_status: "pending_review",
 };
 
 function adminFetch(path: string, options: RequestInit = {}) {
@@ -122,6 +144,9 @@ function EditModal({
     business_hours: spot.business_hours ?? "",
     url:            spot.url            ?? "",
     photo_url:      spot.photo_url      ?? "",
+    pet_condition:  spot.pet_condition  ?? "",
+    listing_status: spot.listing_status ?? "pending_review",
+    dog_size:       spot.dog_size       ?? "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -208,6 +233,43 @@ function EditModal({
           />
         </div>
 
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">ペット同伴条件</label>
+          <textarea
+            value={form.pet_condition}
+            onChange={(e) => setForm({ ...form, pet_condition: e.target.value })}
+            placeholder="例：テラス席のみ・要予約"
+            rows={3}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500 resize-none"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">犬のサイズ</label>
+          <select
+            value={form.dog_size}
+            onChange={(e) => setForm({ ...form, dog_size: e.target.value })}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          >
+            {DOG_SIZE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">掲載ステータス</label>
+          <select
+            value={form.listing_status}
+            onChange={(e) => setForm({ ...form, listing_status: e.target.value })}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          >
+            {LISTING_STATUS_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+
         <div className="flex gap-2 justify-end mt-2">
           <button
             onClick={onClose}
@@ -291,6 +353,43 @@ function AddModal({
             />
           </div>
         ))}
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">犬のサイズ</label>
+          <select
+            value={form.dog_size}
+            onChange={(e) => set("dog_size", e.target.value)}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          >
+            {DOG_SIZE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">ペット同伴条件</label>
+          <textarea
+            value={form.pet_condition}
+            onChange={(e) => set("pet_condition", e.target.value)}
+            placeholder="例：テラス席のみ・要予約"
+            rows={3}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500 resize-none"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">掲載ステータス</label>
+          <select
+            value={form.listing_status}
+            onChange={(e) => set("listing_status", e.target.value)}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          >
+            {LISTING_STATUS_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
 
         {err && <p className="text-red-500 text-xs">{err}</p>}
 

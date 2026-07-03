@@ -25,10 +25,10 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 const DOG_SIZE_LABELS: Record<string, string> = {
-  small:  "小型のみ",
-  medium: "中型可",
-  large:  "大型可",
-  all:    "制限なし",
+  small:  "小型犬のみ",
+  medium: "〜中型犬",
+  large:  "〜大型犬",
+  all:    "犬種制限なし",
 };
 
 type Spot = {
@@ -40,6 +40,7 @@ type Spot = {
   rating: number | null;
   review_count: number | null;
   description: string | null;
+  pet_condition: string | null;
   image_url: string | null;
   photo_url: string | null;
   business_hours: string | null;
@@ -203,7 +204,7 @@ export default async function SpotDetailPage({
                   </div>
                 </div>
               )}
-              {s.dog_size && (
+              {s.dog_size && (s.category === "restaurant" || s.category === "dogrun") && (
                 <div className="bg-white rounded-xl border border-accent/10 p-4 flex gap-3">
                   <span className="text-xl">🐕</span>
                   <div>
@@ -235,7 +236,18 @@ export default async function SpotDetailPage({
             </div>
           )}
 
-          {/* 5. 説明文エリア */}
+          {/* 5. ペット同伴条件 */}
+          {s.pet_condition && (
+            <div className="bg-[#F0F7F3] rounded-xl border border-accent/20 px-5 py-4 mb-6 flex gap-3 items-start">
+              <span className="text-lg mt-0.5">🐾</span>
+              <div>
+                <p className="text-xs font-semibold text-accent mb-1">ペット同伴条件</p>
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{s.pet_condition}</p>
+              </div>
+            </div>
+          )}
+
+          {/* 6. 説明文エリア */}
           {s.description && (
             <div className="bg-white rounded-2xl border border-accent/10 p-6 mb-8">
               <h2 className="font-heading text-lg font-bold text-foreground mb-3">このスポットについて</h2>

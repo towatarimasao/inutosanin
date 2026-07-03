@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { name, category, address, phone, opening_hours, google_maps_url, website_url } = body;
+  const { name, category, address, phone, opening_hours, google_maps_url, website_url, pet_condition, dog_size, listing_status } = body;
 
   if (!name || !category) {
     return NextResponse.json({ error: "name と category は必須です" }, { status: 400 });
@@ -31,11 +31,14 @@ export async function POST(req: NextRequest) {
     .insert({
       name,
       category,
-      address:       address       || null,
-      phone:         phone         || null,
+      address:        address       || null,
+      phone:          phone         || null,
       business_hours: opening_hours || null,
-      url:           website_url || google_maps_url || null,
-      is_active:     true,
+      url:            website_url || google_maps_url || null,
+      pet_condition:  pet_condition  || null,
+      dog_size:       dog_size       || null,
+      listing_status: listing_status || "pending_review",
+      is_active:      true,
     });
 
   if (error) {
@@ -61,7 +64,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await client
       .from("spots")
-      .select("id, name, category, address, phone, business_hours, url, photo_url, listing_status, is_active, created_at")
+      .select("id, name, category, address, phone, business_hours, url, photo_url, listing_status, is_active, created_at, pet_condition, dog_size")
       .order("created_at", { ascending: false })
       .range(from, to);
 
