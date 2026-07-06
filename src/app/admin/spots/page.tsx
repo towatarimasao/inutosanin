@@ -488,11 +488,13 @@ function AdminContent() {
               <tbody>
                 {filtered.map((spot) => (
                   <tr key={spot.id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className={`px-4 py-3 font-medium max-w-[200px] truncate ${spot.listing_status === "pending_review" ? "text-red-600" : "text-gray-800"}`}>
+                    <td className={`px-4 py-3 font-medium max-w-[200px] truncate ${!spot.is_active ? "text-gray-400" : spot.listing_status === "pending_review" ? "text-red-600" : "text-gray-800"}`}>
                       {spot.name}
                     </td>
                     <td className="px-4 py-3">
-                      {spot.listing_status === "published" ? (
+                      {!spot.is_active ? (
+                        <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-gray-200 text-gray-500">非公開（除外）</span>
+                      ) : spot.listing_status === "published" ? (
                         <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">公開中</span>
                       ) : spot.listing_status === "pending_review" ? (
                         <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">掲載保留</span>
