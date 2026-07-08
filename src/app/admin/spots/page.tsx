@@ -53,6 +53,7 @@ type EditForm = {
   pet_condition: string;
   listing_status: string;
   dog_size: string;
+  is_active: boolean;
 };
 
 type AddForm = {
@@ -105,6 +106,7 @@ function EditModal({
     pet_condition:  spot.pet_condition  ?? "",
     listing_status: spot.listing_status ?? "pending_review",
     dog_size:       spot.dog_size       ?? "",
+    is_active:      spot.is_active,
   });
   const [saving, setSaving] = useState(false);
 
@@ -226,6 +228,24 @@ function EditModal({
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <label className="text-xs text-gray-500">公開状態（サイトへの掲載）</label>
+          <button
+            type="button"
+            onClick={() => setForm({ ...form, is_active: !form.is_active })}
+            aria-pressed={form.is_active}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              form.is_active ? "bg-green-500" : "bg-gray-300"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                form.is_active ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
         </div>
 
         <div className="flex gap-2 justify-end mt-2">
