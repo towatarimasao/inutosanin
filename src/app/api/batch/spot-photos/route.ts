@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 // 手動トリガー専用（Vercel Cronは設定しない）。
-// 対象は category='restaurant' AND is_active=true AND listing_status='published'
-// AND google_place_id IS NOT NULL AND photo_url IS NULL の1件のみ。
+// 対象は category=<指定値> AND is_active=true AND google_place_id IS NOT NULL AND photo_url IS NULL の1件のみ。
 // photo_urlが埋まった時点で対象外になるため、再実行しても同じレコードは再処理されない。
 
 export const maxDuration = 300;
@@ -98,6 +97,14 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
+  const category = searchParams.get("category");
+  if (!category) {
+    return NextResponse.json(
+      { error: "category クエリパラメータは必須です（例: ?category=dogrun）" },
+      { status: 400 }
+    );
+  }
+
   const execute = searchParams.get("execute") === "true";
 
   const supabase = getServiceClient();
@@ -105,9 +112,8 @@ export async function GET(request: Request) {
   const { data, error: fetchError } = await supabase
     .from("spots")
     .select("id, name, google_place_id")
-    .eq("category", "restaurant")
+    .eq("category", category)
     .eq("is_active", true)
-    .eq("listing_status", "published")
     .not("google_place_id", "is", null)
     .is("photo_url", null);
 
@@ -118,17 +124,18 @@ export async function GET(request: Request) {
   const targets = (data ?? []) as TargetSpot[];
 
   console.log(
-    `[restaurant-photos] 対象件数: ${targets.length}件 (dryRun=${!execute})`
+    `[spot-photos][${category}] 対象件数: ${targets.length}件 (dryRun=${!execute})`
   );
 
   if (!execute) {
     // dry-runモード：対象件数と一覧をログ出力するのみ。書き込み・API呼び出しは一切行わない。
     for (const spot of targets) {
-      console.log(`[restaurant-photos][dry-run] 対象: ${spot.name} (id=${spot.id})`);
+      console.log(`[spot-photos][${category}][dry-run] 対象: ${spot.name} (id=${spot.id})`);
     }
     return NextResponse.json({
       ok: true,
       mode: "dry-run",
+      category,
       targetCount: targets.length,
       targets: targets.map((s) => ({ id: s.id, name: s.name })),
       note: "本実行するには ?execute=true を付けてください",
@@ -151,7 +158,7 @@ export async function GET(request: Request) {
 
       const { buffer, contentType } = await fetchPhotoBytes(photoName);
       const ext = extFromContentType(contentType);
-      const path = `restaurant/${spot.id}.${ext}`;
+      const path = `${category}/${spot.id}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from(BUCKET)
@@ -174,12 +181,12 @@ export async function GET(request: Request) {
         throw new Error(`DB更新失敗: ${updateError.message}`);
       }
 
-      console.log(`[restaurant-photos][OK] ${spot.name} (id=${spot.id}) -> ${publicUrlData.publicUrl}`);
+      console.log(`[spot-photos][${category}][OK] ${spot.name} (id=${spot.id}) -> ${publicUrlData.publicUrl}`);
       results.push({ id: spot.id, name: spot.name, ok: true });
       succeeded++;
     } catch (err) {
       const message = String(err instanceof Error ? err.message : err);
-      console.error(`[restaurant-photos][NG] ${spot.name} (id=${spot.id}): ${message}`);
+      console.error(`[spot-photos][${category}][NG] ${spot.name} (id=${spot.id}): ${message}`);
       results.push({ id: spot.id, name: spot.name, ok: false, error: message });
       failed++;
       // 失敗しても全体は止めず、次のレコードへ進む
@@ -191,12 +198,13 @@ export async function GET(request: Request) {
   }
 
   console.log(
-    `[restaurant-photos] 完了: 成功${succeeded}件 / 失敗${failed}件 / 対象${targets.length}件`
+    `[spot-photos][${category}] 完了: 成功${succeeded}件 / 失敗${failed}件 / 対象${targets.length}件`
   );
 
   return NextResponse.json({
     ok: true,
     mode: "execute",
+    category,
     targetCount: targets.length,
     succeeded,
     failed,
