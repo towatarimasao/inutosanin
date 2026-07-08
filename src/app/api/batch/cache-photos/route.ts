@@ -57,6 +57,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const RESUME_DATE = "2026-09-01";
+  if (new Date() < new Date(RESUME_DATE)) {
+    return NextResponse.json(
+      { error: `Google Places APIコスト抑制のため停止中。再開予定日: ${RESUME_DATE}` },
+      { status: 403 }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "20", 10), 50);
 
