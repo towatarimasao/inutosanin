@@ -114,6 +114,7 @@ export async function GET(request: Request) {
     .select("id, name, google_place_id")
     .eq("category", category)
     .eq("is_active", true)
+    .eq("listing_status", "published")
     .not("google_place_id", "is", null)
     .is("photo_url", null);
 
