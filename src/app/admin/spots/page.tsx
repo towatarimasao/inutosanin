@@ -20,7 +20,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   vet:        "動物病院",
   hotel:      "ペットホテル",
   restaurant: "ペットOK飲食店",
-  shop:       "ペット用品店",
+  shop:       "ペット用品店・サロン",
   adoption:   "保護犬情報",
 };
 

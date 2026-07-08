@@ -10,7 +10,7 @@ const spotItems = [
   { label: "動物病院", href: "/spots?category=vet" },
   { label: "ペットホテル", href: "/spots?category=hotel" },
   { label: "ペットOK飲食店", href: "/spots?category=restaurant" },
-  { label: "ペット用品店", href: "/spots?category=shop" },
+  { label: "ペット用品店・サロン", href: "/spots?category=shop" },
   { label: "保護犬情報", href: "/spots?category=adoption" },
 ];
 

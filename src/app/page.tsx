@@ -45,7 +45,7 @@ const CATEGORIES = [
   },
   {
     slug: "petshop",
-    label: "ペット用品店",
+    label: "ペット用品店・サロン",
     description: "グッズやフードを探す",
     icon: "/icons/shop.svg",
     bgColor: "#DEEAF0",   // 空色tint

@@ -7,7 +7,7 @@ const GENRES = [
   { value: "vet",        label: "動物病院" },
   { value: "hotel",      label: "ペットホテル" },
   { value: "restaurant", label: "ペットOK飲食店" },
-  { value: "shop",       label: "ペット用品店" },
+  { value: "shop",       label: "ペット用品店・サロン" },
   { value: "adoption",   label: "保護犬情報" },
 ];
 

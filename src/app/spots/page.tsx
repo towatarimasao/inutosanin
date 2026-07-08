@@ -18,7 +18,7 @@ const CATEGORIES = [
   { slug: "vet",        label: "動物病院" },
   { slug: "hotel",      label: "ペットホテル" },
   { slug: "restaurant", label: "ペットOK飲食店" },
-  { slug: "shop",       label: "ペット用品店" },
+  { slug: "shop",       label: "ペット用品店・サロン" },
   { slug: "adoption",   label: "保護犬情報" },
 ];
 
@@ -27,7 +27,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   vet:        "動物病院",
   hotel:      "ペットホテル",
   restaurant: "ペットOK飲食店",
-  shop:       "ペット用品店",
+  shop:       "ペット用品店・サロン",
   adoption:   "保護犬情報",
 };
 
@@ -220,7 +220,7 @@ export default async function SpotsPage({
         {activeCategory === 'shop' && (
           <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4">
             <p className="text-xs text-subtext/70 leading-relaxed">
-              ※ペット用品店にはコンビニ・スーパー・100円均一など一部不適切な店舗が含まれる場合があります。また、掲載情報は必ずしも最新ではない場合があります。
+              ※ペット用品店・サロンにはコンビニ・スーパー・100円均一など一部不適切な店舗が含まれる場合があります。また、掲載情報は必ずしも最新ではない場合があります。
             </p>
           </div>
         )}
