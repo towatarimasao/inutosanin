@@ -16,6 +16,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "places.googleapis.com",
       },
+      {
+        // Supabase Storage（スポット写真）
+        protocol: "https",
+        hostname: "jbbxcznfuwwxavzwsuks.supabase.co",
+      },
     ],
   },
 };
