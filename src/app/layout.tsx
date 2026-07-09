@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Zen_Kaku_Gothic_New, Noto_Sans_JP, Figtree } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const zenKaku = Zen_Kaku_Gothic_New({
@@ -94,6 +95,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-[#FAF6F1] text-foreground font-body">
         {children}
+        <Analytics />
       </body>
     </html>
   );
