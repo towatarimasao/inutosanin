@@ -7,7 +7,8 @@
 
 ## スタック
 - Next.js 14 / TypeScript / Tailwind
-- Drizzle ORM + Neon PostgreSQL
+- DB: Supabase（spots関連の全機能）、Drizzle ORM + Neon PostgreSQL（topics機能のみ）
+- 注：src/db/schema.tsのspotsテーブル定義はデッドコード（未参照）
 - Vercel（ホスティング）
 - Google Places API
 - 環境変数：DATABASE_URL / GOOGLE_PLACES_API_KEY（Vercel設定済み）
@@ -33,7 +34,8 @@ src/
 - APIコスト見積もりなしにバッチを走らせない
 
 ## よくあるバグパターン
-- DB接続エラー → DATABASE_URL確認（Vercel環境変数設定済み）
+- DB接続エラー（spots関連） → NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SECRET_KEY確認
+- DB接続エラー（topics機能） → DATABASE_URL確認（Vercel環境変数設定済み、Neon専用）
 - Google Placesデータ取得失敗 → GOOGLE_PLACES_API_KEY確認
 
 ## 開発ルール
