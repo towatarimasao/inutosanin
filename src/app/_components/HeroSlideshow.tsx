@@ -25,7 +25,7 @@ export default function HeroSlideshow() {
 
   return (
     <section
-      className="relative w-full max-w-[calc(100%-48px)] aspect-[16/9] max-h-[650px] min-h-[380px] mx-auto flex items-center justify-center text-center px-4 sm:px-6 bg-[#FAF6F1]"
+      className="relative w-full max-w-[calc(100%-48px)] aspect-[3/4] sm:aspect-[16/9] max-h-[650px] min-h-[480px] sm:min-h-[380px] mx-auto flex items-center justify-center text-center px-4 sm:px-6 bg-[#FAF6F1]"
       style={{}}
     >
       {/* 画像をsection内に収めるクリップラッパー */}
@@ -49,20 +49,20 @@ export default function HeroSlideshow() {
       </div>
 
       {/* テキストコンテンツ */}
-      <div className="relative z-10 overflow-hidden py-4">
+      <div className="relative z-10 overflow-hidden pt-10 pb-8 sm:py-4 flex flex-col items-center gap-3 sm:gap-4">
         {/* ロゴ風バッジ */}
-        <span className="inline-block bg-accent/90 text-white text-xs font-en font-semibold tracking-widest px-4 py-1.5 rounded-full mb-6">
+        <span className="inline-block bg-accent/90 text-white text-xs font-heading font-semibold tracking-widest px-4 py-1.5 rounded-full">
           山陰 · 鳥取 · 島根
         </span>
-        <h1 className="font-heading text-3xl sm:text-5xl font-bold mb-4 leading-tight text-white drop-shadow-sm">
+        <h1 className="font-heading text-3xl sm:text-5xl font-bold leading-tight text-white drop-shadow-sm">
           愛犬と楽しむ
           <br />
           <span className="text-[#F4A96A]">サンイン</span>のすべて
         </h1>
-        <p className="text-white/80 text-sm mb-6 tracking-widest font-heading">
+        <p className="text-white/80 text-sm tracking-widest font-heading">
           山陰（鳥取・島根）の犬オーナーのために
         </p>
-        <p className="text-white/85 text-base sm:text-lg max-w-xl mx-auto mb-4 sm:mb-10">
+        <p className="text-white/85 text-base sm:text-lg max-w-xl mx-auto">
           ドッグラン・動物病院・ペット可施設など、山陰エリアの犬にまつわる情報を一か所に。
         </p>
         <Link
