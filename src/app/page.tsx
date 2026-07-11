@@ -59,6 +59,15 @@ const CATEGORIES = [
     bgColor: "#FBEADD",   // 柿色tint
     iconBg: "#F5D0B5",
   },
+  {
+    slug: "dogfood",
+    label: "山陰産ドッグフード",
+    description: "山陰産のフードを探す",
+    icon: "/icons/dogfood.svg",
+    bgColor: "#E2EEE8",   // 苔色tint
+    iconBg: "#C5DDD0",
+    href: "/dog-food",    // spotsテーブルとは別の独立ページのため個別href指定
+  },
 ];
 
 type NoteArticle = {
@@ -228,7 +237,7 @@ export default async function Home() {
               {CATEGORIES.map((cat) => (
                 <Link
                   key={cat.slug}
-                  href={`/spots?category=${cat.slug}`}
+                  href={cat.href ?? `/spots?category=${cat.slug}`}
                   style={{ backgroundColor: cat.bgColor }}
                   className="group flex flex-col items-center gap-3 border-b-4 border-accent rounded-3xl p-6 hover:shadow-lg hover:-translate-y-2 transition-all duration-200"
                 >
