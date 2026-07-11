@@ -21,6 +21,31 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "jbbxcznfuwwxavzwsuks.supabase.co",
       },
+      {
+        // ワンフー（商品画像）
+        protocol: "https",
+        hostname: "d2w53g1q050m78.cloudfront.net",
+      },
+      {
+        // リバードコーポレーション（商品画像）
+        protocol: "https",
+        hostname: "www.riverd-republic.com",
+      },
+      {
+        // マンマボーノ（商品画像）
+        protocol: "https",
+        hostname: "manmabuono.jp",
+      },
+      {
+        // 楽天/KISSBABY（商品画像）
+        protocol: "https",
+        hostname: "shop.r10s.jp",
+      },
+      {
+        // みちのくファーム（商品画像）
+        protocol: "https",
+        hostname: "image.raku-uru.jp",
+      },
     ],
   },
 };
