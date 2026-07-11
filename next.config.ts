@@ -46,6 +46,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "image.raku-uru.jp",
       },
+      {
+        // くいしんぼ（BASE、商品画像）
+        protocol: "https",
+        hostname: "baseec-img-mng.akamaized.net",
+      },
     ],
   },
 };
