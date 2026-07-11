@@ -44,7 +44,7 @@ const CATEGORIES = [
     iconBg: "#C5DDD0",
   },
   {
-    slug: "petshop",
+    slug: "shop",
     label: "ペット用品店・サロン",
     description: "グッズやフードを探す",
     icon: "/icons/shop.svg",

@@ -70,10 +70,12 @@ export async function GET(request: Request) {
 
   const supabase = getServiceClient();
 
-  // photo_urlがNULLでgoogle_place_idがあるスポットを取得
+  // 公開中かつphoto_urlがNULLでgoogle_place_idがあるスポットを取得
   const { data: spots, error: fetchError } = await supabase
     .from("spots")
     .select("id, name, google_place_id")
+    .eq("is_active", true)
+    .eq("listing_status", "published")
     .not("google_place_id", "is", null)
     .is("photo_url", null)
     .limit(limit);
