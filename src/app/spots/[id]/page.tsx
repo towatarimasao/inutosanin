@@ -32,6 +32,12 @@ const DOG_SIZE_LABELS: Record<string, string> = {
   all:    "犬種制限なし",
 };
 
+// hotelカテゴリの補助タグ（同伴宿泊 / 預け先の判別用）
+const STAY_TAG_LABELS: Record<string, string> = {
+  stay:     "泊まる",
+  boarding: "預ける",
+};
+
 type Spot = {
   id: string;
   name: string;
@@ -54,6 +60,7 @@ type Spot = {
   facebook_url: string | null;
   is_active: boolean;
   created_at: string;
+  stay_tags: string[] | null;
 };
 
 export async function generateMetadata({
@@ -133,6 +140,20 @@ export default async function SpotDetailPage({
             <h1 className="font-heading text-3xl font-bold text-foreground leading-tight mb-3">
               {s.name}
             </h1>
+            {s.category === "hotel" && s.stay_tags && s.stay_tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {s.stay_tags
+                  .filter((tag) => STAY_TAG_LABELS[tag])
+                  .map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-accent/10 text-accent"
+                    >
+                      {STAY_TAG_LABELS[tag]}
+                    </span>
+                  ))}
+              </div>
+            )}
             {s.address && (
               <div className="flex flex-col gap-1.5">
                 <p className="text-sm text-subtext flex items-center gap-1.5">

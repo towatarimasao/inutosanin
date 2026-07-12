@@ -67,6 +67,13 @@ type Spot = {
   photo_url: string | null;
   created_at: string;
   is_active: boolean;
+  stay_tags: string[] | null;
+};
+
+// hotelカテゴリの補助タグ（同伴宿泊 / 預け先の判別用）
+const STAY_TAG_LABELS: Record<string, string> = {
+  stay:     "泊まる",
+  boarding: "預ける",
 };
 
 // 現在のフィルターを保ちつつ特定パラメータだけ変えたURLを生成
@@ -277,6 +284,20 @@ export default async function SpotsPage({
                           <p className="font-bold text-sm sm:text-base text-foreground leading-snug">
                             {spot.name}
                           </p>
+                          {spot.category === "hotel" && spot.stay_tags && spot.stay_tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5">
+                              {spot.stay_tags
+                                .filter((tag) => STAY_TAG_LABELS[tag])
+                                .map((tag) => (
+                                  <span
+                                    key={tag}
+                                    className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent"
+                                  >
+                                    {STAY_TAG_LABELS[tag]}
+                                  </span>
+                                ))}
+                            </div>
+                          )}
                           {spot.rating != null && (
                             <div className="flex items-center gap-2">
                               <StarRating rating={spot.rating} />
