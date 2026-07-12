@@ -291,7 +291,11 @@ export default async function SpotsPage({
                                 .map((tag) => (
                                   <span
                                     key={tag}
-                                    className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent"
+                                    className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                                      tag === "stay"
+                                        ? "bg-emerald-100 text-emerald-800"
+                                        : "bg-amber-100 text-amber-800"
+                                    }`}
                                   >
                                     {STAY_TAG_LABELS[tag]}
                                   </span>
