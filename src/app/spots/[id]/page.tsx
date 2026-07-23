@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,6 +7,8 @@ import Footer from "@/app/_components/Footer";
 import { supabase } from "@/lib/supabase";
 import ReportButton from "./ReportButton";
 
+const BASE_URL = "https://www.inutosanin.jp";
+
 const CATEGORY_LABELS: Record<string, string> = {
   dogrun:     "ドッグラン",
   vet:        "動物病院",
@@ -14,6 +16,16 @@ const CATEGORY_LABELS: Record<string, string> = {
   restaurant: "ペットOK飲食店",
   shop:       "ペット用品店・サロン",
   adoption:   "保護犬情報",
+};
+
+// カテゴリごとのJSON-LD schema.org type（該当する専用typeがないものはLocalBusinessにフォールバック）
+const CATEGORY_SCHEMA_TYPE: Record<string, string> = {
+  dogrun:     "LocalBusiness",
+  vet:        "VeterinaryCare",
+  hotel:      "LodgingBusiness",
+  restaurant: "Restaurant",
+  shop:       "Store",
+  adoption:   "LocalBusiness",
 };
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
@@ -63,24 +75,45 @@ type Spot = {
   stay_tags: string[] | null;
 };
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}): Promise<Metadata> {
+export async function generateMetadata(
+  {
+    params,
+  }: {
+    params: Promise<{ id: string }>;
+  },
+  parent: ResolvingMetadata
+): Promise<Metadata> {
   const { id } = await params;
   const { data } = await supabase
     .from("spots")
-    .select("name, description")
+    .select("name, description, photo_url, image_url")
     .eq("id", id)
     .eq("listing_status", "published")
     .single();
 
   if (!data) return { title: "スポット詳細" };
 
+  // サイト共通のOGP設定（layout.tsx）を土台に、スポット固有の値で上書きする
+  const parentMeta = await parent;
+  const pageUrl = `${BASE_URL}/spots/${id}`;
+  const ogImage = data.photo_url || data.image_url || "/images/hero.png";
+
   return {
     title: data.name,
     description: data.description ?? undefined,
+    openGraph: {
+      ...parentMeta.openGraph,
+      title: data.name,
+      description: data.description ?? undefined,
+      url: pageUrl,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: data.name }],
+    },
+    twitter: {
+      ...parentMeta.twitter,
+      title: data.name,
+      description: data.description ?? undefined,
+      images: [ogImage],
+    },
   };
 }
 
@@ -114,8 +147,48 @@ export default async function SpotDetailPage({
     { href: s.facebook_url,  label: "Facebook",    icon: "👤" },
   ].filter((l) => l.href);
 
+  const pageUrl = `${BASE_URL}/spots/${s.id}`;
+  const spotImage = s.photo_url || s.image_url || undefined;
+
+  const localBusinessJsonLd = {
+    "@context": "https://schema.org",
+    "@type": CATEGORY_SCHEMA_TYPE[s.category] ?? "LocalBusiness",
+    name: s.name,
+    ...(s.address && {
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: s.address,
+        addressCountry: "JP",
+      },
+    }),
+    ...(s.url && { url: s.url }),
+    ...(spotImage && { image: spotImage }),
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "ホーム", item: BASE_URL },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: CATEGORY_LABELS[s.category] ?? s.category,
+        item: `${BASE_URL}/spots?category=${s.category}`,
+      },
+      { "@type": "ListItem", position: 3, name: s.name, item: pageUrl },
+    ],
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          // </script>によるタグ抜け出しを防ぐため < をエスケープする
+          __html: JSON.stringify([localBusinessJsonLd, breadcrumbJsonLd]).replace(/</g, "\\u003c"),
+        }}
+      />
       <Header />
 
       <main className="flex flex-col flex-1 bg-[#FAF6F1]">
