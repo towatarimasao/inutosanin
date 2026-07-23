@@ -21,7 +21,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 // カテゴリごとのJSON-LD schema.org type（該当する専用typeがないものはLocalBusinessにフォールバック）
 const CATEGORY_SCHEMA_TYPE: Record<string, string> = {
   dogrun:     "LocalBusiness",
-  vet:        "VeterinaryCare",
+  vet:        "LocalBusiness",
   hotel:      "LodgingBusiness",
   restaurant: "Restaurant",
   shop:       "Store",
