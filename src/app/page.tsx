@@ -4,6 +4,7 @@ import Link from "next/link";
 import HeroSlideshow from "./_components/HeroSlideshow";
 import Header from "./_components/Header";
 import Footer from "./_components/Footer";
+import { AREAS } from "@/lib/areas";
 
 export const metadata: Metadata = {
   title: "イヌとサンイン | 山陰の犬オーナーのためのポータルサイト",
@@ -260,6 +261,33 @@ export default async function Home() {
                     {cat.description}
                   </span>
                 </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* エリアから探す */}
+        <section className="bg-[#EDE8E0] px-6 py-16">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="font-heading text-2xl font-bold text-center text-foreground mb-10">
+              エリアから探す
+            </h2>
+            <div className="grid sm:grid-cols-2 gap-8">
+              {AREAS.map((pref) => (
+                <div key={pref.slug}>
+                  <p className="font-heading font-bold text-foreground mb-3">{pref.name}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {pref.cities.map((city) => (
+                      <Link
+                        key={city.slug}
+                        href={`/spots/${pref.slug}/${city.slug}`}
+                        className="text-sm border border-accent/30 text-foreground hover:border-accent hover:text-accent bg-white rounded-full px-4 py-1.5 transition-colors"
+                      >
+                        {city.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>

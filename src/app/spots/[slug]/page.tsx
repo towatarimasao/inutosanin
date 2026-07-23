@@ -1,3 +1,4 @@
+// このslugはspots.idのUUIDを表す
 import type { Metadata, ResolvingMetadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -79,11 +80,11 @@ export async function generateMetadata(
   {
     params,
   }: {
-    params: Promise<{ id: string }>;
+    params: Promise<{ slug: string }>;
   },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const { id } = await params;
+  const { slug: id } = await params;
   const { data } = await supabase
     .from("spots")
     .select("name, description, photo_url, image_url")
@@ -120,9 +121,9 @@ export async function generateMetadata(
 export default async function SpotDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = await params;
+  const { slug: id } = await params;
 
   const { data: spot, error } = await supabase
     .from("spots")

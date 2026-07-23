@@ -1,17 +1,16 @@
+// このslugは都道府県slug（tottori/shimane）を表す。スポット詳細ページのslugとは意味が異なる
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import Header from "@/app/_components/Header";
 import Footer from "@/app/_components/Footer";
 import { supabase } from "@/lib/supabase";
-import { findAreaByCityName } from "@/lib/areas";
+import { findArea } from "@/lib/areas";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "スポット一覧",
-  description: "山陰（鳥取・島根）の犬連れOKスポット一覧。ドッグラン・動物病院・ペットホテルなど。",
-};
+const BASE_URL = "https://www.inutosanin.jp";
 
 const CATEGORIES = [
   { slug: "",           label: "すべて" },
@@ -41,100 +40,97 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
   adoption:   { bg: "#F5D0B5", text: "#7A3D10" },
 };
 
-// 地域定義
-const PREFECTURES = [
-  { slug: "",        label: "全て" },
-  { slug: "tottori", label: "鳥取県" },
-  { slug: "shimane", label: "島根県" },
-];
-
-const CITIES: Record<string, string[]> = {
-  tottori: ["鳥取市", "米子市", "倉吉市", "境港市", "岩美町", "三朝町", "琴浦町", "北栄町", "大山町", "南部町", "伯耆町", "日吉津村", "若桜町", "智頭町"],
-  shimane: ["松江市", "出雲市", "浜田市", "益田市", "安来市", "雲南市", "大田市", "江津市", "奥出雲町", "飯南町", "川本町", "美郷町", "邑南町", "津和野町", "吉賀町", "海士町", "西ノ島町", "知夫村", "隠岐の島町"],
-};
-
-const PREFECTURE_LABEL: Record<string, string> = { tottori: "鳥取県", shimane: "島根県" };
-
-type Spot = {
-  id: string;
-  name: string;
-  category: string;
-  address: string | null;
-  city: string | null;
-  rating: number | null;
-  review_count: number | null;
-  description: string | null;
-  pet_condition: string | null;
-  photo_url: string | null;
-  created_at: string;
-  is_active: boolean;
-  stay_tags: string[] | null;
-};
-
 // hotelカテゴリの補助タグ（同伴宿泊 / 預け先の判別用）
 const STAY_TAG_LABELS: Record<string, string> = {
   stay:     "泊まる",
   boarding: "預ける",
 };
 
-// 現在のフィルターを保ちつつ特定パラメータだけ変えたURLを生成
-function buildUrl(params: Record<string, string>): string {
-  const sp = new URLSearchParams();
-  Object.entries(params).forEach(([k, v]) => { if (v) sp.set(k, v); });
-  const qs = sp.toString();
-  return qs ? `/spots?${qs}` : "/spots";
-}
-
-function StarRating({ rating }: { rating: number }) {
-  const full = Math.floor(rating);
-  const half = rating % 1 >= 0.5;
-  return (
-    <span className="flex items-center gap-0.5" aria-label={`評価${rating}`}>
-      {Array.from({ length: 5 }, (_, i) => {
-        if (i < full) return <span key={i} className="text-[#D2691E] text-sm">★</span>;
-        if (i === full && half) return <span key={i} className="text-[#D2691E] text-sm opacity-50">★</span>;
-        return <span key={i} className="text-foreground/20 text-sm">★</span>;
-      })}
-    </span>
-  );
-}
-
 const PILL_BASE = "whitespace-nowrap text-sm font-medium px-4 py-1.5 rounded-full border transition-all";
 const PILL_ACTIVE = "bg-accent text-white border-accent";
 const PILL_INACTIVE = "border-foreground/15 text-foreground hover:border-accent/30 hover:text-accent";
 
-export default async function SpotsPage({
+type Spot = {
+  id: string;
+  name: string;
+  category: string;
+  address: string | null;
+  description: string | null;
+  pet_condition: string | null;
+  photo_url: string | null;
+  stay_tags: string[] | null;
+};
+
+type PageParams = { slug: string; city: string };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<PageParams>;
+}): Promise<Metadata> {
+  const { slug: prefecture, city } = await params;
+  const area = findArea(prefecture, city);
+  if (!area) return { title: "スポット一覧" };
+
+  const { prefecture: pref, city: cityDef } = area;
+
+  return {
+    title: `${cityDef.name}の犬連れOKスポット一覧`,
+    description: `${pref.name}${cityDef.name}の犬連れOKなドッグラン・動物病院・ペットホテル・飲食店・ペット用品店をまとめて紹介`,
+  };
+}
+
+export default async function CitySpotsPage({
+  params,
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; prefecture?: string; city?: string }>;
+  params: Promise<PageParams>;
+  searchParams: Promise<{ category?: string }>;
 }) {
-  const { category, prefecture, city } = await searchParams;
-  const activeCategory   = category   ?? "";
-  const activePrefecture = prefecture ?? "";
-  const activeCity       = city       ?? "";
+  const { slug: prefecture, city } = await params;
+  const area = findArea(prefecture, city);
+  if (!area) notFound();
 
-  let query = supabase
+  const { prefecture: pref, city: cityDef } = area;
+  const { category } = await searchParams;
+  const activeCategory = category ?? "";
+
+  const { data: spots, error } = await supabase
     .from("spots")
     .select("*")
     .eq("is_active", true)
     .eq("listing_status", "published")
+    .ilike("address", `%${cityDef.name}%`)
     .order("created_at", { ascending: false });
 
-  if (activeCategory)   query = query.eq("category", activeCategory);
-  if (activeCity)       query = query.ilike("address", `%${activeCity}%`);
-  else if (activePrefecture) {
-    const prefLabel = PREFECTURE_LABEL[activePrefecture];
-    if (prefLabel) query = query.ilike("address", `%${prefLabel}%`);
-  }
-
-  const { data: spots, error } = await query;
   if (error) console.error("[Supabase] spots fetch error:", error);
-  const spotList: Spot[] = spots ?? [];
 
-  const cityList = activePrefecture ? CITIES[activePrefecture] ?? [] : [];
+  const allSpots: Spot[] = spots ?? [];
+  const spotList = activeCategory
+    ? allSpots.filter((s) => s.category === activeCategory)
+    : allSpots;
+
+  const pageUrl = `${BASE_URL}/spots/${prefecture}/${city}`;
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "ホーム", item: BASE_URL },
+      { "@type": "ListItem", position: 2, name: pref.name, item: `${BASE_URL}/spots?prefecture=${prefecture}` },
+      { "@type": "ListItem", position: 3, name: cityDef.name, item: pageUrl },
+    ],
+  };
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          // </script>によるタグ抜け出しを防ぐため < をエスケープする
+          __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       <Header />
 
       <main className="flex flex-col flex-1 bg-[#FAF6F1]">
@@ -144,77 +140,21 @@ export default async function SpotsPage({
           <div className="max-w-5xl mx-auto">
             <p className="text-xs font-en font-semibold text-accent tracking-widest mb-2">SPOTS</p>
             <h1 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">
-              スポット一覧
+              {cityDef.name}の犬連れOKスポット一覧
             </h1>
             <p className="text-sm text-subtext mt-2">
-              山陰（鳥取・島根）の犬連れOKスポットを探せます
+              {pref.name}{cityDef.name}には現在{allSpots.length}件の犬連れOKスポットを掲載中。ドッグラン・動物病院・ペットホテル・飲食店・ペット用品店をまとめて探せます。
             </p>
           </div>
         </section>
 
-        {/* フィルターエリア */}
+        {/* カテゴリフィルター */}
         <section className="bg-[#FAF6F1] border-b border-foreground/10 sticky top-0 z-30">
           <div className="max-w-5xl mx-auto px-4 sm:px-6">
-
-            {/* 1段目：都道府県フィルター */}
-            <nav aria-label="都道府県フィルター" className="flex gap-1 overflow-x-auto pt-3 pb-2 scrollbar-none">
-              {PREFECTURES.map((pref) => {
-                const isActive = activePrefecture === pref.slug;
-                const href = buildUrl({
-                  category: activeCategory,
-                  prefecture: pref.slug,
-                  city: "",
-                });
-                return (
-                  <Link
-                    key={pref.slug}
-                    href={href}
-                    className={`${PILL_BASE} ${isActive ? PILL_ACTIVE : PILL_INACTIVE}`}
-                  >
-                    {pref.label}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* 2段目：市町村フィルター（県選択時のみ） */}
-            {cityList.length > 0 && (
-              <nav aria-label="市町村フィルター" className="flex flex-wrap gap-1 pb-3">
-                <Link
-                  href={buildUrl({ category: activeCategory, prefecture: activePrefecture, city: "" })}
-                  className={`${PILL_BASE} ${activeCity === "" ? PILL_ACTIVE : PILL_INACTIVE}`}
-                >
-                  全て
-                </Link>
-                {cityList.map((c) => {
-                  const isActive = activeCity === c;
-                  // 専用市町村ページがある場合はそちらへ、なければ従来通り?city=クエリで絞り込む
-                  const dedicatedCity = findAreaByCityName(activePrefecture, c);
-                  const href = dedicatedCity
-                    ? `/spots/${activePrefecture}/${dedicatedCity.slug}${activeCategory ? `?category=${activeCategory}` : ""}`
-                    : buildUrl({ category: activeCategory, prefecture: activePrefecture, city: c });
-                  return (
-                    <Link
-                      key={c}
-                      href={href}
-                      className={`${PILL_BASE} ${isActive ? PILL_ACTIVE : PILL_INACTIVE}`}
-                    >
-                      {c}
-                    </Link>
-                  );
-                })}
-              </nav>
-            )}
-
-            {/* 3段目：カテゴリフィルター */}
-            <nav aria-label="カテゴリフィルター" className="flex gap-1 overflow-x-auto py-3 scrollbar-none border-t border-foreground/5">
+            <nav aria-label="カテゴリフィルター" className="flex gap-1 overflow-x-auto py-3 scrollbar-none">
               {CATEGORIES.map((cat) => {
                 const isActive = activeCategory === cat.slug;
-                const href = buildUrl({
-                  category: cat.slug,
-                  prefecture: activePrefecture,
-                  city: activeCity,
-                });
+                const href = cat.slug ? `${pageUrl}?category=${cat.slug}` : pageUrl;
                 return (
                   <Link
                     key={cat.slug}
@@ -229,25 +169,13 @@ export default async function SpotsPage({
           </div>
         </section>
 
-        {/* 注意書き：shopカテゴリ選択時のみ表示 */}
-        {activeCategory === 'shop' && (
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4">
-            <p className="text-xs text-subtext/70 leading-relaxed">
-              ※ペット用品店・サロンにはコンビニ・スーパー・100円均一など一部不適切な店舗が含まれる場合があります。また、掲載情報は必ずしも最新ではない場合があります。
-            </p>
-          </div>
-        )}
-
         {/* スポット一覧 */}
         <section className="px-4 sm:px-6 py-10">
           <div className="max-w-5xl mx-auto">
 
             {/* 件数表示 */}
             <p className="text-sm text-subtext mb-6">
-              {[
-                activeCity || (activePrefecture ? PREFECTURE_LABEL[activePrefecture] : ""),
-                activeCategory ? CATEGORY_LABELS[activeCategory] : "",
-              ].filter(Boolean).join(" / ") || "すべて"}
+              {[cityDef.name, activeCategory ? CATEGORY_LABELS[activeCategory] : ""].filter(Boolean).join(" / ")}
               {" "}
               <span className="font-semibold text-foreground">{spotList.length}件</span>
             </p>
@@ -306,17 +234,6 @@ export default async function SpotsPage({
                                     {STAY_TAG_LABELS[tag]}
                                   </span>
                                 ))}
-                            </div>
-                          )}
-                          {spot.rating != null && (
-                            <div className="flex items-center gap-2">
-                              <StarRating rating={spot.rating} />
-                              <span className="text-xs text-subtext font-en">
-                                {spot.rating.toFixed(1)}
-                                {spot.review_count != null && (
-                                  <span className="ml-1">({spot.review_count})</span>
-                                )}
-                              </span>
                             </div>
                           )}
                           {spot.address && (
