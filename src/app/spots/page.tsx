@@ -57,6 +57,7 @@ const PREFECTURE_LABEL: Record<string, string> = { tottori: "鳥取県", shimane
 
 type Spot = {
   id: string;
+  slug: string;
   name: string;
   category: string;
   address: string | null;
@@ -262,7 +263,7 @@ export default async function SpotsPage({
                   const badgeColor = CATEGORY_COLORS[spot.category] ?? { bg: "#E2E2E2", text: "#444" };
                   return (
                     <li key={spot.id}>
-                      <Link href={`/spots/${spot.id}`} className="flex flex-col bg-white rounded-2xl overflow-hidden border border-accent/10 hover:shadow-lg transition-all duration-200 h-full">
+                      <Link href={`/spots/${spot.slug}`} className="flex flex-col bg-white rounded-2xl overflow-hidden border border-accent/10 hover:shadow-lg transition-all duration-200 h-full">
 
                         {/* 画像エリア */}
                         <div className="relative aspect-video bg-[#E2EEE8] flex items-center justify-center overflow-hidden">
@@ -271,6 +272,7 @@ export default async function SpotsPage({
                               src={spot.photo_url}
                               alt={spot.name}
                               fill
+                              unoptimized
                               className="object-cover"
                               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             />

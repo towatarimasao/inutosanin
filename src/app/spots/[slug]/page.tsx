@@ -1,14 +1,17 @@
-// このslugはspots.idのUUIDを表す
+// このslugはspots.slug（人間が読めるスラッグ）を表す。
+// 旧UUID URLでのアクセスはresolveSpot()内でid検索にフォールバックし、新URLへ301(308)リダイレクトする
 import type { Metadata, ResolvingMetadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Header from "@/app/_components/Header";
 import Footer from "@/app/_components/Footer";
 import { supabase } from "@/lib/supabase";
 import ReportButton from "./ReportButton";
 
 const BASE_URL = "https://www.inutosanin.jp";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const CATEGORY_LABELS: Record<string, string> = {
   dogrun:     "ドッグラン",
@@ -53,6 +56,7 @@ const STAY_TAG_LABELS: Record<string, string> = {
 
 type Spot = {
   id: string;
+  slug: string;
   name: string;
   category: string;
   address: string | null;
@@ -76,6 +80,45 @@ type Spot = {
   stay_tags: string[] | null;
 };
 
+type ResolvedSpot =
+  | { kind: "found"; spot: Spot }
+  | { kind: "redirect"; slug: string; spot: Spot }
+  | { kind: "not_found" };
+
+// generateMetadataとページ本体の両方から呼ばれる共通のslug解決処理。
+// 1. slugで検索してヒットすればそれを返す
+// 2. 空振りかつUUID形式ならidで再検索する（旧UUID URL互換）。
+//    ヒットすればそのスポットのslugをリダイレクト先として返す
+//    （メタデータ生成にも同じデータをそのまま使い、二重クエリを避ける）
+// 3. どちらもヒットしなければnot_found
+async function resolveSpot(slugParam: string): Promise<ResolvedSpot> {
+  const { data: bySlug } = await supabase
+    .from("spots")
+    .select("*")
+    .eq("slug", slugParam)
+    .eq("is_active", true)
+    .eq("listing_status", "published")
+    .single();
+
+  if (bySlug) return { kind: "found", spot: bySlug as Spot };
+
+  if (UUID_RE.test(slugParam)) {
+    const { data: byId } = await supabase
+      .from("spots")
+      .select("*")
+      .eq("id", slugParam)
+      .eq("is_active", true)
+      .eq("listing_status", "published")
+      .single();
+
+    if (byId?.slug) {
+      return { kind: "redirect", slug: byId.slug, spot: byId as Spot };
+    }
+  }
+
+  return { kind: "not_found" };
+}
+
 export async function generateMetadata(
   {
     params,
@@ -84,35 +127,34 @@ export async function generateMetadata(
   },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const { slug: id } = await params;
-  const { data } = await supabase
-    .from("spots")
-    .select("name, description, photo_url, image_url")
-    .eq("id", id)
-    .eq("listing_status", "published")
-    .single();
+  const { slug } = await params;
+  const resolved = await resolveSpot(slug);
 
-  if (!data) return { title: "スポット詳細" };
+  if (resolved.kind === "not_found") return { title: "スポット詳細" };
+
+  const spot = resolved.spot;
+  // UUID URL経由の場合も、リダイレクト先の正しいslugでcanonical URLを出す
+  const canonicalSlug = resolved.kind === "found" ? slug : resolved.slug;
 
   // サイト共通のOGP設定（layout.tsx）を土台に、スポット固有の値で上書きする
   const parentMeta = await parent;
-  const pageUrl = `${BASE_URL}/spots/${id}`;
-  const ogImage = data.photo_url || data.image_url || "/images/hero.png";
+  const pageUrl = `${BASE_URL}/spots/${canonicalSlug}`;
+  const ogImage = spot.photo_url || spot.image_url || "/images/hero.png";
 
   return {
-    title: data.name,
-    description: data.description ?? undefined,
+    title: spot.name,
+    description: spot.description ?? undefined,
     openGraph: {
       ...parentMeta.openGraph,
-      title: data.name,
-      description: data.description ?? undefined,
+      title: spot.name,
+      description: spot.description ?? undefined,
       url: pageUrl,
-      images: [{ url: ogImage, width: 1200, height: 630, alt: data.name }],
+      images: [{ url: ogImage, width: 1200, height: 630, alt: spot.name }],
     },
     twitter: {
       ...parentMeta.twitter,
-      title: data.name,
-      description: data.description ?? undefined,
+      title: spot.name,
+      description: spot.description ?? undefined,
       images: [ogImage],
     },
   };
@@ -123,18 +165,13 @@ export default async function SpotDetailPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug: id } = await params;
+  const { slug } = await params;
+  const resolved = await resolveSpot(slug);
 
-  const { data: spot, error } = await supabase
-    .from("spots")
-    .select("*")
-    .eq("id", id)
-    .eq("listing_status", "published")
-    .single();
+  if (resolved.kind === "not_found") notFound();
+  if (resolved.kind === "redirect") permanentRedirect(`/spots/${resolved.slug}`);
 
-  if (error || !spot) notFound();
-
-  const s = spot as Spot;
+  const s = resolved.spot;
   const badgeColor = CATEGORY_COLORS[s.category] ?? { bg: "#E2E2E2", text: "#444" };
 
   const googleMapsUrl = s.address
@@ -148,7 +185,7 @@ export default async function SpotDetailPage({
     { href: s.facebook_url,  label: "Facebook",    icon: "👤" },
   ].filter((l) => l.href);
 
-  const pageUrl = `${BASE_URL}/spots/${s.id}`;
+  const pageUrl = `${BASE_URL}/spots/${s.slug}`;
   const spotImage = s.photo_url || s.image_url || undefined;
 
   const localBusinessJsonLd = {
@@ -259,6 +296,7 @@ export default async function SpotDetailPage({
                 src={(s.photo_url || s.image_url)!}
                 alt={s.name}
                 fill
+                unoptimized
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 768px"
               />

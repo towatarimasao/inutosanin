@@ -40,6 +40,9 @@ env*.txt
 # backups
 backups/
 
+# スラッグ生成ドライラン・調査用の一時出力（店舗名・住所を含むためコミットしない）
+scripts/*.csv
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
