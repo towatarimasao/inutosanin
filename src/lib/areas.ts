@@ -62,3 +62,47 @@ export function findAreaByCityName(
   const prefecture = AREAS.find((p) => p.slug === prefectureSlug);
   return prefecture?.cities.find((c) => c.name === cityName) ?? null;
 }
+
+// 市町村ごとの近隣市町村（地理的な近さに基づく手動定義、3件ずつ）。
+// 値のslugはすべてAREAS配列に実在する市町村slugと一致させること
+export const NEARBY_CITIES: Record<string, string[]> = {
+  "tottori-shi":  ["kurayoshi", "yonago", "daisen"],
+  "kurayoshi":    ["tottori-shi", "daisen", "yonago"],
+  "yonago":       ["sakaiminato", "daisen", "hoki"],
+  "sakaiminato":  ["yonago", "hoki", "daisen"],
+  "hoki":         ["daisen", "yonago", "sakaiminato"],
+  "daisen":       ["yonago", "hoki", "kurayoshi"],
+  "matsue":       ["yasugi", "izumo", "okinoshima"],
+  "yasugi":       ["matsue", "yonago", "izumo"],
+  "izumo":        ["matsue", "unnan", "iinan"],
+  "unnan":        ["izumo", "iinan", "matsue"],
+  "iinan":        ["unnan", "izumo", "matsue"],
+  "ota":          ["gotsu", "hamada", "izumo"],
+  "hamada":       ["gotsu", "masuda", "ota"],
+  "masuda":       ["hamada", "gotsu", "ota"],
+  "gotsu":        ["hamada", "ota", "masuda"],
+  "okinoshima":   ["matsue", "yasugi", "izumo"],
+};
+
+// 市町村slugが属する都道府県slugを引く
+export function findPrefectureSlugForCity(citySlug: string): string | null {
+  const prefecture = AREAS.find((p) => p.cities.some((c) => c.slug === citySlug));
+  return prefecture?.slug ?? null;
+}
+
+// 指定した市町村slugの近隣市町村を、都道府県slugとAreaCityのセットで返す。
+// AREASに実在しないslugが紛れ込んでいた場合は黙って除外する（防御的）
+export function getNearbyCities(
+  citySlug: string
+): { prefectureSlug: string; city: AreaCity }[] {
+  const nearbySlugs = NEARBY_CITIES[citySlug] ?? [];
+  return nearbySlugs
+    .map((slug) => {
+      const prefectureSlug = findPrefectureSlugForCity(slug);
+      if (!prefectureSlug) return null;
+      const area = findArea(prefectureSlug, slug);
+      if (!area) return null;
+      return { prefectureSlug, city: area.city };
+    })
+    .filter((v): v is { prefectureSlug: string; city: AreaCity } => v !== null);
+}

@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import Header from "@/app/_components/Header";
 import Footer from "@/app/_components/Footer";
 import { supabase } from "@/lib/supabase";
-import { findArea } from "@/lib/areas";
+import { findArea, getNearbyCities } from "@/lib/areas";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +63,42 @@ type Spot = {
 
 type PageParams = { slug: string; city: string };
 
+type NearbyCityStats = {
+  total: number;
+  topCategory: string | null;
+};
+
+// 近隣市町村カード表示用に、件数と最多カテゴリだけ軽量に取得する
+async function getNearbyCityStats(cityName: string): Promise<NearbyCityStats> {
+  const { data, error } = await supabase
+    .from("spots")
+    .select("category")
+    .eq("is_active", true)
+    .eq("listing_status", "published")
+    .ilike("address", `%${cityName}%`);
+
+  if (error) {
+    console.error("[Supabase] nearby city stats fetch error:", error);
+    return { total: 0, topCategory: null };
+  }
+
+  const counts: Record<string, number> = {};
+  for (const row of data ?? []) {
+    counts[row.category] = (counts[row.category] ?? 0) + 1;
+  }
+
+  let topCategory: string | null = null;
+  let topCount = 0;
+  for (const [cat, count] of Object.entries(counts)) {
+    if (count > topCount) {
+      topCategory = cat;
+      topCount = count;
+    }
+  }
+
+  return { total: data?.length ?? 0, topCategory };
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -109,6 +145,14 @@ export default async function CitySpotsPage({
   const spotList = activeCategory
     ? allSpots.filter((s) => s.category === activeCategory)
     : allSpots;
+
+  const nearbyCities = getNearbyCities(city);
+  const nearbyCitiesWithStats = await Promise.all(
+    nearbyCities.map(async (n) => ({
+      ...n,
+      stats: await getNearbyCityStats(n.city.name),
+    }))
+  );
 
   const pageUrl = `${BASE_URL}/spots/${prefecture}/${city}`;
 
@@ -261,6 +305,54 @@ export default async function CitySpotsPage({
             )}
           </div>
         </section>
+
+        {/* 近隣の市町村もチェック */}
+        {nearbyCitiesWithStats.length > 0 && (
+          <section className="px-4 sm:px-6 py-10 border-t border-foreground/10">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="font-heading text-lg font-bold text-foreground mb-5">
+                {cityDef.name}周辺のスポットもチェック
+              </h2>
+              <ul className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                {nearbyCitiesWithStats.map((n) => (
+                  <li key={`${n.prefectureSlug}-${n.city.slug}`}>
+                    <Link
+                      href={`/spots/${n.prefectureSlug}/${n.city.slug}`}
+                      className="flex flex-col bg-white rounded-2xl border border-accent/10 p-5 hover:shadow-lg transition-all duration-200 h-full"
+                    >
+                      <p className="font-bold text-base text-foreground leading-snug mb-1">
+                        {n.city.name}
+                      </p>
+                      {n.stats.total > 0 ? (
+                        <p className="text-xs text-subtext">
+                          {n.stats.topCategory && (
+                            <span
+                              className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full mr-1.5"
+                              style={{
+                                backgroundColor:
+                                  (CATEGORY_COLORS[n.stats.topCategory] ?? { bg: "#E2E2E2" }).bg,
+                                color:
+                                  (CATEGORY_COLORS[n.stats.topCategory] ?? { text: "#444" }).text,
+                              }}
+                            >
+                              {CATEGORY_LABELS[n.stats.topCategory] ?? n.stats.topCategory}
+                            </span>
+                          )}
+                          全{n.stats.total}件掲載中
+                        </p>
+                      ) : (
+                        <p className="text-xs text-subtext">スポット準備中</p>
+                      )}
+                      <span className="mt-auto pt-3 text-xs sm:text-sm font-semibold text-accent">
+                        詳細を見る →
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
 
         {/* 投稿・報告ボタン */}
         <section className="px-4 sm:px-6 py-10 border-t border-foreground/10">
