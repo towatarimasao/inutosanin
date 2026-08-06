@@ -1,0 +1,43 @@
+# RSSフィード一覧
+rss_feeds:
+  - name: "犬・ペットニュース"
+    url: "https://example.com/pet-news/rss"
+  - name: "山陰地方ニュース"
+    url: "https://example.com/sanin-news/rss"
+
+# RSS取得設定
+fetch:
+  days_back: 3               # 直近何日以内の記事を対象にするか
+  processed_log: "logs/processed.json"  # 処理済み記事URLの記録先
+
+# 記事生成設定
+generation:
+  model: "gemini-flash-latest"
+  max_retries: 3
+  prompt_template: "prompts/article_prompt.txt"
+  media_name: "イヌとサンイン"
+  media_description: "山陰（島根県・鳥取県）の愛犬家向けメディア"
+  image_model: "gemini-2.5-flash-image"   # 見出し画像生成用モデル
+  image_save_dir: "logs/images"           # 生成した画像の一時保存先
+
+# note下書き保存設定
+#
+# noteはログインフォームにreCAPTCHAがあり、メール/パスワードでの自動ログインは
+# ブロックされることを確認済み。そのため、事前に scripts/note_manual_login.py で
+# 手動ログインしてセッション（storage_state）を保存し、それを使い回す方式にしている。
+# また editor.note.com への直接アクセスはCORSエラーで止まるため、
+# note.comトップページの「投稿」リンクを実際にクリックする形でエディタに遷移する。
+note:
+  draft_only: true           # 常にtrue固定（公開ボタンは操作しない）
+  headless: false             # true（ヘッドレス）だとエディタが読み込まれず止まることを確認済み
+  home_url: "https://note.com/"
+  selectors:
+    post_link: "a:has-text('投稿')"
+    title_input: "textarea[placeholder='記事タイトル']"
+    body_editor: "div.note-common-styles__textnote-body"
+    save_draft_button: "button:has-text('下書き保存')"
+    eyecatch_add_button: "button[aria-label='画像を追加']"
+    eyecatch_upload_menu_item: "text=画像をアップロード"
+    eyecatch_file_input: "#note-editor-eyecatch-input"
+    eyecatch_crop_save_button: "div.ReactModal__Overlay button:has-text('保存')"
+  storage_state_path: "logs/note_session.json"  # scripts/note_manual_login.py で生成

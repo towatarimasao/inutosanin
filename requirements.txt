@@ -1,0 +1,15 @@
+# RSS取得
+feedparser==6.0.11
+
+# Gemini API
+google-generativeai==0.8.3
+
+# note下書き保存の自動操作
+playwright==1.48.0
+
+# 設定・環境変数
+python-dotenv==1.0.1
+PyYAML==6.0.2
+
+# データ処理・型付け補助
+pydantic==2.9.2
