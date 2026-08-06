@@ -1,0 +1,43 @@
+# イヌとサンイン / Inu to San'in
+
+## Overview / 概要
+
+イヌとサンイン（Inu to San'in）is a portal website for dog owners living in the San'in region of Japan (Tottori and Shimane prefectures).
+
+山陰（鳥取・島根）に住む犬オーナーのための情報ポータルサイトです。
+
+## Purpose / 目的
+
+To provide dog owners in the San'in region with a single destination for finding:
+- Dog runs (ドッグラン)
+- Veterinary clinics (動物病院)
+- Pet hotels (ペットホテル)
+- Pet-friendly restaurants and cafes (ペットOK飲食店)
+- Pet supply stores (ペット用品店)
+- Rescue dog adoption information (保護犬情報)
+
+山陰エリアの犬にまつわるすべての情報（ドッグラン・動物病院・ペットホテル・ペット可飲食店・ペット用品店・保護犬情報）を一か所に集めたポータルサイトです。
+
+## Operator / 運営者
+
+- Name / 氏名: 戸渡直宏 (Naohiro Towatari)
+- Company / 会社: グレートブレーン (GreatBrain)
+- Location / 所在地: 米子市, 鳥取県, 日本 (Yonago City, Tottori, Japan)
+- Contact / 連絡先: info@greatbrain475.com
+- Website / サイトURL: https://www.inutosanin.jp
+
+## Content / コンテンツ
+
+- Spot listings (スポット一覧): Local dog-friendly facilities in Tottori and Shimane
+- Topics (トピックス): News, events, and useful information for dog owners in San'in
+- Information sourced from note.com/inutosanin
+
+## Language / 言語
+
+Japanese (日本語) — primarily targeting Japanese-speaking dog owners in the San'in region.
+
+## Usage / 利用について
+
+This site is intended for personal, non-commercial use by dog owners seeking local pet-friendly services in the San'in area of Japan. Information is provided in good faith and may be updated periodically.
+
+このサイトの情報は山陰エリアの犬オーナーの利便性向上を目的として提供しています。情報は随時更新されます。

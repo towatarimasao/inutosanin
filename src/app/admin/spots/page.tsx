@@ -1,0 +1,611 @@
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+
+const DOG_SIZE_OPTIONS = [
+  { value: "",       label: "指定なし（未入力）" },
+  { value: "small",  label: "小型犬のみ" },
+  { value: "medium", label: "〜中型犬" },
+  { value: "large",  label: "〜大型犬" },
+  { value: "all",    label: "犬種制限なし" },
+];
+
+const LISTING_STATUS_OPTIONS = [
+  { value: "pending_review", label: "掲載保留" },
+  { value: "published",      label: "公開中" },
+];
+
+const CATEGORY_LABELS: Record<string, string> = {
+  dogrun:     "ドッグラン",
+  vet:        "動物病院",
+  hotel:      "ペットホテル",
+  restaurant: "ペットOK飲食店",
+  shop:       "ペット用品店・サロン",
+  adoption:   "保護犬情報",
+};
+
+const CATEGORIES = Object.entries(CATEGORY_LABELS).map(([slug, label]) => ({ slug, label }));
+
+type Spot = {
+  id: string;
+  name: string;
+  category: string;
+  address: string | null;
+  phone: string | null;
+  business_hours: string | null;
+  url: string | null;
+  photo_url: string | null;
+  listing_status: string | null;
+  pet_condition: string | null;
+  dog_size: string | null;
+  is_active: boolean;
+  created_at: string;
+};
+
+type EditForm = {
+  name: string;
+  category: string;
+  address: string;
+  phone: string;
+  business_hours: string;
+  url: string;
+  photo_url: string;
+  pet_condition: string;
+  listing_status: string;
+  dog_size: string;
+  is_active: boolean;
+};
+
+type AddForm = {
+  name: string;
+  category: string;
+  address: string;
+  phone: string;
+  opening_hours: string;
+  google_maps_url: string;
+  website_url: string;
+  pet_condition: string;
+  dog_size: string;
+  listing_status: string;
+};
+
+const EMPTY_ADD_FORM: AddForm = {
+  name: "", category: "dogrun", address: "",
+  phone: "", opening_hours: "", google_maps_url: "", website_url: "",
+  pet_condition: "", dog_size: "", listing_status: "pending_review",
+};
+
+function adminFetch(path: string, options: RequestInit = {}) {
+  return fetch(path, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+}
+
+// ── 編集モーダル ────────────────────────────────────────────
+function EditModal({
+  spot,
+  onClose,
+  onSave,
+}: {
+  spot: Spot;
+  onClose: () => void;
+  onSave: (id: string, form: EditForm) => Promise<void>;
+}) {
+  const [form, setForm] = useState<EditForm>({
+    name:           spot.name,
+    category:       spot.category,
+    address:        spot.address        ?? "",
+    phone:          spot.phone          ?? "",
+    business_hours: spot.business_hours ?? "",
+    url:            spot.url            ?? "",
+    photo_url:      spot.photo_url      ?? "",
+    pet_condition:  spot.pet_condition  ?? "",
+    listing_status: spot.listing_status ?? "pending_review",
+    dog_size:       spot.dog_size       ?? "",
+    is_active:      spot.is_active,
+  });
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    setSaving(true);
+    await onSave(spot.id, form);
+    setSaving(false);
+    onClose();
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+        <h2 className="font-bold text-gray-800">スポットを編集</h2>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">名前</label>
+          <input
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">カテゴリ</label>
+          <select
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          >
+            {CATEGORIES.map((c) => (
+              <option key={c.slug} value={c.slug}>{c.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">住所</label>
+          <input
+            value={form.address}
+            onChange={(e) => setForm({ ...form, address: e.target.value })}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">電話番号</label>
+          <input
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            placeholder="例：0857-00-0000"
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">営業時間</label>
+          <input
+            value={form.business_hours}
+            onChange={(e) => setForm({ ...form, business_hours: e.target.value })}
+            placeholder="例：9:00〜17:00"
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">公式サイトURL</label>
+          <input
+            value={form.url}
+            onChange={(e) => setForm({ ...form, url: e.target.value })}
+            placeholder="https://..."
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">写真URL</label>
+          <input
+            value={form.photo_url}
+            onChange={(e) => setForm({ ...form, photo_url: e.target.value })}
+            placeholder="https://..."
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">ペット同伴条件</label>
+          <textarea
+            value={form.pet_condition}
+            onChange={(e) => setForm({ ...form, pet_condition: e.target.value })}
+            placeholder="例：テラス席のみ・要予約"
+            rows={3}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500 resize-none"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">犬のサイズ</label>
+          <select
+            value={form.dog_size}
+            onChange={(e) => setForm({ ...form, dog_size: e.target.value })}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          >
+            {DOG_SIZE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">掲載ステータス</label>
+          <select
+            value={form.listing_status}
+            onChange={(e) => setForm({ ...form, listing_status: e.target.value })}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          >
+            {LISTING_STATUS_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <label className="text-xs text-gray-500">公開状態（サイトへの掲載）</label>
+          <button
+            type="button"
+            onClick={() => setForm({ ...form, is_active: !form.is_active })}
+            aria-pressed={form.is_active}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              form.is_active ? "bg-green-500" : "bg-gray-300"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                form.is_active ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="flex gap-2 justify-end mt-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm rounded border border-gray-300 hover:bg-gray-50 transition"
+          >
+            キャンセル
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-4 py-2 text-sm rounded bg-gray-800 text-white hover:bg-gray-700 transition disabled:opacity-50"
+          >
+            {saving ? "保存中…" : "保存"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── 追加モーダル ────────────────────────────────────────────
+function AddModal({
+  onClose,
+  onAdd,
+}: {
+  onClose: () => void;
+  onAdd: (form: AddForm) => Promise<void>;
+}) {
+  const [form, setForm] = useState<AddForm>(EMPTY_ADD_FORM);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+
+  function set(key: keyof AddForm, value: string) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function handleSave() {
+    if (!form.name.trim()) { setErr("名前は必須です"); return; }
+    setSaving(true);
+    setErr("");
+    await onAdd(form);
+    setSaving(false);
+    onClose();
+  }
+
+  const fields: { key: keyof AddForm; label: string; placeholder?: string }[] = [
+    { key: "name",            label: "名前 *",    placeholder: "例：鳥取砂丘ドッグラン" },
+    { key: "address",         label: "住所",      placeholder: "例：鳥取県鳥取市福部町" },
+    { key: "phone",           label: "電話番号",  placeholder: "例：0857-00-0000" },
+    { key: "opening_hours",   label: "営業時間",  placeholder: "例：9:00〜17:00" },
+    { key: "google_maps_url", label: "Google Maps URL" },
+    { key: "website_url",     label: "公式サイトURL" },
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+        <h2 className="font-bold text-gray-800">スポットを追加</h2>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">カテゴリ *</label>
+          <select
+            value={form.category}
+            onChange={(e) => set("category", e.target.value)}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          >
+            {CATEGORIES.map((c) => (
+              <option key={c.slug} value={c.slug}>{c.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {fields.map(({ key, label, placeholder }) => (
+          <div key={key} className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500">{label}</label>
+            <input
+              value={form[key]}
+              onChange={(e) => set(key, e.target.value)}
+              placeholder={placeholder}
+              className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+            />
+          </div>
+        ))}
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">犬のサイズ</label>
+          <select
+            value={form.dog_size}
+            onChange={(e) => set("dog_size", e.target.value)}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          >
+            {DOG_SIZE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">ペット同伴条件</label>
+          <textarea
+            value={form.pet_condition}
+            onChange={(e) => set("pet_condition", e.target.value)}
+            placeholder="例：テラス席のみ・要予約"
+            rows={3}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500 resize-none"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">掲載ステータス</label>
+          <select
+            value={form.listing_status}
+            onChange={(e) => set("listing_status", e.target.value)}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          >
+            {LISTING_STATUS_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {err && <p className="text-red-500 text-xs">{err}</p>}
+
+        <div className="flex gap-2 justify-end mt-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm rounded border border-gray-300 hover:bg-gray-50 transition"
+          >
+            キャンセル
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-4 py-2 text-sm rounded bg-gray-800 text-white hover:bg-gray-700 transition disabled:opacity-50"
+          >
+            {saving ? "保存中…" : "追加"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── メイン管理画面 ──────────────────────────────────────────
+function AdminContent() {
+  const [spots, setSpots]           = useState<Spot[]>([]);
+  const [loading, setLoading]       = useState(true);
+  const [search, setSearch]         = useState("");
+  const [filterCat, setFilterCat]     = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [editTarget, setEditTarget] = useState<Spot | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Spot | null>(null);
+  const [showAdd, setShowAdd]       = useState(false);
+
+  async function loadSpots() {
+    setLoading(true);
+    const res = await adminFetch("/api/admin/spots");
+    if (res.ok) setSpots(await res.json());
+    setLoading(false);
+  }
+
+  useEffect(() => { loadSpots(); }, []);
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return spots.filter((s) => {
+      const matchSearch  = !q || s.name.toLowerCase().includes(q) || (s.address ?? "").toLowerCase().includes(q);
+      const matchCat     = !filterCat || s.category === filterCat;
+      const matchStatus  = !filterStatus || s.listing_status === filterStatus;
+      return matchSearch && matchCat && matchStatus;
+    });
+  }, [spots, search, filterCat, filterStatus]);
+
+  async function handleAdd(form: AddForm) {
+    await adminFetch("/api/admin/spots", {
+      method: "POST",
+      body: JSON.stringify(form),
+    });
+    await loadSpots();
+  }
+
+  async function handleSave(id: string, form: EditForm) {
+    await adminFetch(`/api/admin/spots/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(form),
+    });
+    await loadSpots();
+  }
+
+  async function handleDelete(spot: Spot) {
+    await adminFetch(`/api/admin/spots/${spot.id}`, { method: "DELETE" });
+    setDeleteTarget(null);
+    await loadSpots();
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-6xl mx-auto">
+
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-xl font-bold text-gray-800">スポット管理</h1>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500">{filtered.length} 件表示</span>
+            <button
+              onClick={() => setShowAdd(true)}
+              className="px-4 py-2 text-sm rounded bg-gray-800 text-white hover:bg-gray-700 transition"
+            >
+              ＋ スポットを追加
+            </button>
+          </div>
+        </div>
+
+        {/* 検索・フィルター */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="名前・住所で検索…"
+            className="border border-gray-300 rounded px-3 py-2 text-sm w-64 focus:outline-none focus:border-gray-500"
+          />
+          <select
+            value={filterCat}
+            onChange={(e) => setFilterCat(e.target.value)}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          >
+            <option value="">全カテゴリ</option>
+            {CATEGORIES.map((c) => (
+              <option key={c.slug} value={c.slug}>{c.label}</option>
+            ))}
+          </select>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          >
+            <option value="">すべて</option>
+            <option value="published">公開中のみ</option>
+            <option value="pending_review">掲載保留のみ</option>
+          </select>
+        </div>
+
+        {/* テーブル */}
+        {loading ? (
+          <p className="text-sm text-gray-500 py-10 text-center">読み込み中…</p>
+        ) : (
+          <div className="bg-white rounded-xl shadow overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 text-left text-xs text-gray-500">
+                  <th className="px-4 py-3 font-medium">名前</th>
+                  <th className="px-4 py-3 font-medium">ステータス</th>
+                  <th className="px-4 py-3 font-medium">カテゴリ</th>
+                  <th className="px-4 py-3 font-medium">住所</th>
+                  <th className="px-4 py-3 font-medium w-28">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((spot) => (
+                  <tr key={spot.id} className="border-b border-gray-50 hover:bg-gray-50">
+                    <td className={`px-4 py-3 font-medium max-w-[200px] truncate ${!spot.is_active ? "text-gray-400" : spot.listing_status === "pending_review" ? "text-red-600" : "text-gray-800"}`}>
+                      {spot.name}
+                    </td>
+                    <td className="px-4 py-3">
+                      {!spot.is_active ? (
+                        <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-gray-200 text-gray-500">非公開（除外）</span>
+                      ) : spot.listing_status === "published" ? (
+                        <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">公開中</span>
+                      ) : spot.listing_status === "pending_review" ? (
+                        <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">掲載保留</span>
+                      ) : (
+                        <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{spot.listing_status ?? "—"}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-gray-600">
+                      {CATEGORY_LABELS[spot.category] ?? spot.category}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500 max-w-[280px] truncate">
+                      {spot.address ?? "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setEditTarget(spot)}
+                          className="px-3 py-1 text-xs rounded border border-gray-300 hover:bg-gray-100 transition"
+                        >
+                          編集
+                        </button>
+                        <button
+                          onClick={() => setDeleteTarget(spot)}
+                          className="px-3 py-1 text-xs rounded border border-red-200 text-red-600 hover:bg-red-50 transition"
+                        >
+                          削除
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="text-center text-gray-400 py-10 text-sm">
+                      該当するスポットがありません
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* 追加モーダル */}
+      {showAdd && (
+        <AddModal
+          onClose={() => setShowAdd(false)}
+          onAdd={handleAdd}
+        />
+      )}
+
+      {/* 編集モーダル */}
+      {editTarget && (
+        <EditModal
+          spot={editTarget}
+          onClose={() => setEditTarget(null)}
+          onSave={handleSave}
+        />
+      )}
+
+      {/* 削除確認ダイアログ */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-4">
+            <h2 className="font-bold text-gray-800">削除の確認</h2>
+            <p className="text-sm text-gray-600">
+              「{deleteTarget.name}」を削除します。この操作は元に戻せません。
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="px-4 py-2 text-sm rounded border border-gray-300 hover:bg-gray-50 transition"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={() => handleDelete(deleteTarget)}
+                className="px-4 py-2 text-sm rounded bg-red-600 text-white hover:bg-red-700 transition"
+              >
+                削除する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── ページエントリー ────────────────────────────────────────
+export default function AdminSpotsPage() {
+  return <AdminContent />;
+}
