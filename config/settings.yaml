@@ -1,9 +1,9 @@
 # RSSフィード一覧
 rss_feeds:
-  - name: "犬・ペットニュース"
-    url: "https://example.com/pet-news/rss"
-  - name: "山陰地方ニュース"
-    url: "https://example.com/sanin-news/rss"
+  - name:"Yahoo!ニュース（山陰・島根）"
+    url: "https://news.yahoo.co.jp/rss/media/sanin/all.xml"
+  - name:"PR TIMES（ペット）"
+    url: "https://prtimes.jp/main/html/searchrlp/rss/index_subcat_id/100"
 
 # RSS取得設定
 fetch:
