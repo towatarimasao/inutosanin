@@ -1,9 +1,11 @@
 # RSSフィード一覧
 rss_feeds:
-  - name: "Yahoo!ニュース（山陰・島根）"
-    url: "https://news.yahoo.co.jp/rss/media/sanin/all.xml"
-  - name: "PR TIMES（ペット）"
-    url: "https://prtimes.jp/main/html/searchrlp/rss/index_subcat_id/100"
+  - name: "Googleニュース（島根）"
+    url: "https://news.google.com/rss/search?q=%E5%B3%B6%E6%A0%B9&hl=ja&gl=JP&ceid=JP:ja"
+  - name: "Googleニュース（鳥取）"
+    url: "https://news.google.com/rss/search?q=%E9%B3%A5%E5%8F%96&hl=ja&gl=JP&ceid=JP:ja"
+  - name: "Googleニュース（犬・ペット）"
+    url: "https://news.google.com/rss/search?q=%E7%8A%AC%20%E3%83%9A%E3%83%83%E3%83%8B&hl=ja&gl=JP&ceid=JP:ja"
 
 # RSS取得設定
 fetch:
