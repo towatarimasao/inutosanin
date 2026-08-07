@@ -53,6 +53,12 @@ def main() -> None:
         processed_log_path=processed_log_path,
     )
 
+    # ★ 1回の実行で処理する上限数を設定ファイルから取得（デフォルトは最大1件）
+    max_articles = fetch_config.get("max_articles", 1)
+    if max_articles and len(news_items) > max_articles:
+        logger.info(f"対象記事 {len(news_items)} 件のうち、上限の {max_articles} 件のみ処理します。")
+        news_items = news_items[:max_articles]
+
     success_count = 0
     skip_count = 0
 
