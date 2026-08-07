@@ -10,6 +10,7 @@ rss_feeds:
 # RSS取得設定
 fetch:
   days_back: 3                  # 直近何日以内の記事を対象にするか
+  max_articles: 1               # 1回の実行で作成する記事の最大数
   processed_log: "logs/processed.json"  # 処理済み記事URLの記録先
 
 # 記事生成設定
