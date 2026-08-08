@@ -15,13 +15,13 @@ fetch:
 
 # 記事生成設定
 generation:
-  model: "gemini-flash-latest"
+  model: "gemini-1.5-flash"
   max_retries: 3
   prompt_template: "prompts/article_prompt.txt"
   media_name: "イヌとサンイン"
   media_description: "山陰（島根県・鳥取県）の愛犬家向けメディア"
-  image_model: "gemini-2.5-flash-image"    # 見出し画像生成用モデル
-  image_save_dir: "logs/images"    # 生成した画像の一時保存先
+  image_model: "gemini-1.5-flash"
+  image_save_dir: "logs/images"
 
 # note下書き保存設定
 note:
