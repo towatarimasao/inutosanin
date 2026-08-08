@@ -8,9 +8,15 @@ import { findAreaByCityName } from "@/lib/areas";
 
 export const dynamic = "force-dynamic";
 
+const BASE_URL = "https://www.inutosanin.jp";
+
 export const metadata: Metadata = {
   title: "スポット一覧",
   description: "山陰（鳥取・島根）の犬連れOKスポット一覧。ドッグラン・動物病院・ペットホテルなど。",
+  // categoryクエリの有無に関わらずcanonicalは常に/spotsを指す（重複コンテンツ対策）
+  alternates: {
+    canonical: `${BASE_URL}/spots`,
+  },
 };
 
 const CATEGORIES = [
