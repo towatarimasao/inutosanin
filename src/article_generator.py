@@ -1,4 +1,4 @@
-"""記事および見出し画像の生成モジュール（完全無料・新SDK版）"""
+"""記事および見出し画像の生成モジュール（完全無料・新SDK修正版）"""
 
 import urllib.parse
 from pathlib import Path
@@ -46,13 +46,11 @@ def generate_article(
         news_url=news_item.url,
     )
 
-    # 安定した1.5-flashを指定
-    target_model = "gemini-1.5-flash"
-
     for attempt in range(1, max_retries + 1):
         try:
+            # モデル名の指定を補正（gemini-1.5-flash を直接渡す）
             response = client.models.generate_content(
-                model=target_model,
+                model="gemini-1.5-flash",
                 contents=prompt,
             )
             text = response.text.strip()
