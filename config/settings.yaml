@@ -13,9 +13,9 @@ fetch:
   max_articles: 1               # 1回の実行で作成する記事の最大数（1件固定）
   processed_log: "logs/processed.json"
 
-# 記事生成設定（無料枠対応の2.0-flashを使用）
+# 記事生成設定（無料枠で最も安定する1.5-flashを使用）
 generation:
-  model: "gemini-2.0-flash"
+  model: "gemini-1.5-flash"
   max_retries: 3
   prompt_template: "prompts/article_prompt.txt"
   media_name: "イヌとサンイン"
