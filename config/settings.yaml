@@ -9,24 +9,24 @@ rss_feeds:
 
 # RSS取得設定
 fetch:
-  days_back: 7                  # 直近何日以内の記事を対象にするか
-  max_articles: 1               # 1回の実行で作成する記事の最大数
-  processed_log: "logs/processed.json"  # 処理済み記事URLの記録先
+  days_back: 3                  # 直近3日以内
+  max_articles: 1               # 1回の実行で作成する記事の最大数（1件固定）
+  processed_log: "logs/processed.json"
 
-# 記事生成設定
+# 記事生成設定（無料枠モデル指定）
 generation:
-  model: "gemini-2.0-flash"
+  model: "gemini-1.5-flash"
   max_retries: 3
   prompt_template: "prompts/article_prompt.txt"
   media_name: "イヌとサンイン"
   media_description: "山陰（島根県・鳥取県）の愛犬家向けメディア"
-  image_model: "gemini-2.0-flash"
+  image_model: "free-pollinations"
   image_save_dir: "logs/images"
 
 # note下書き保存設定
 note:
-  draft_only: true              # 常にtrue固定（公開ボタンは操作しない）
-  headless: false               # true だとエディタが読み込まれず止まることを確認済み
+  draft_only: true
+  headless: false
   home_url: "https://note.com/"
   selectors:
     post_link: "a:has-text('投稿')"
