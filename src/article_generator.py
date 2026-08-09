@@ -35,12 +35,16 @@ def generate_article(
     with open(prompt_template_path, "r", encoding="utf-8") as f:
         template = f.read()
 
+    # テンプレートのプレースホルダー名（news_title / news_summary / news_url等）の表記ゆれに柔軟に対応
     prompt = template.format(
         media_name=media_name,
         media_description=media_description,
         title=news_item.title,
+        news_title=news_item.title,
         summary=news_item.summary,
+        news_summary=news_item.summary,
         url=news_item.url,
+        news_url=news_item.url,
     )
 
     model = genai.GenerativeModel(model_name)
