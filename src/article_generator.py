@@ -1,9 +1,9 @@
-"""記事および見出し画像の生成モジュール（完全無料版）"""
+"""記事および見出し画像の生成モジュール（完全無料・新SDK版）"""
 
 import urllib.parse
 from pathlib import Path
 import requests
-import google.generativeai as genai
+from google import genai
 
 from logger import get_logger
 
@@ -29,13 +29,12 @@ def generate_article(
     media_description: str,
     max_retries: int = 3,
 ) -> dict:
-    """Gemini無料枠を使用して記事本文とタイトルを生成する"""
-    genai.configure(api_key=api_key)
+    """Gemini無料枠（新SDK）を使用して記事本文とタイトルを生成する"""
+    client = genai.Client(api_key=api_key)
 
     with open(prompt_template_path, "r", encoding="utf-8") as f:
         template = f.read()
 
-    # テンプレートのプレースホルダー名（news_title / news_summary / news_url等）の表記ゆれに柔軟に対応
     prompt = template.format(
         media_name=media_name,
         media_description=media_description,
@@ -47,11 +46,15 @@ def generate_article(
         news_url=news_item.url,
     )
 
-    model = genai.GenerativeModel(model_name)
+    # 安定した1.5-flashを指定
+    target_model = "gemini-1.5-flash"
 
     for attempt in range(1, max_retries + 1):
         try:
-            response = model.generate_content(prompt)
+            response = client.models.generate_content(
+                model=target_model,
+                contents=prompt,
+            )
             text = response.text.strip()
 
             lines = text.split("\n")
@@ -82,11 +85,8 @@ def generate_eyecatch_image(
     image_path = save_dir / "eyecatch.png"
 
     try:
-        # 記事タイトルからシンプルな英語キーワードを作成
         prompt_keywords = f"Cute dog in Japan, style illustration, {article['title'][:20]}"
         encoded_prompt = urllib.parse.quote(prompt_keywords)
-
-        # 完全無料のPollinations.ai画像生成URL
         image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1200&height=630&nologo=true"
 
         logger.info("Pollinations.ai (無料画像API) にて画像を取得中...")
