@@ -10,14 +10,27 @@ export const dynamic = "force-dynamic";
 
 const BASE_URL = "https://www.inutosanin.jp";
 
-export const metadata: Metadata = {
-  title: "スポット一覧",
-  description: "山陰（鳥取・島根）の犬連れOKスポット一覧。ドッグラン・動物病院・ペットホテルなど。",
-  // categoryクエリの有無に関わらずcanonicalは常に/spotsを指す（重複コンテンツ対策）
-  alternates: {
-    canonical: `${BASE_URL}/spots`,
-  },
-};
+// category・prefectureの指定内容を反映したcanonical URLを生成する
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string; prefecture?: string }>;
+}): Promise<Metadata> {
+  const { category, prefecture } = await searchParams;
+
+  const sp = new URLSearchParams();
+  if (category) sp.set("category", category);
+  if (prefecture) sp.set("prefecture", prefecture);
+  const qs = sp.toString();
+
+  return {
+    title: "スポット一覧",
+    description: "山陰（鳥取・島根）の犬連れOKスポット一覧。ドッグラン・動物病院・ペットホテルなど。",
+    alternates: {
+      canonical: `${BASE_URL}/spots${qs ? `?${qs}` : ""}`,
+    },
+  };
+}
 
 const CATEGORIES = [
   { slug: "",           label: "すべて" },
