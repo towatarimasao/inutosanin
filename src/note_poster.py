@@ -125,10 +125,10 @@ def save_draft(article: GeneratedArticle, note_config: dict, image_path: Path | 
             logger.info(f"下書き保存に成功しました: {article.title}")
 
         except PlaywrightTimeoutError as e:
-            screenshot_path = SCREENSHOT_DIR / f"error_{article.title[:20]}.png"
+            screenshot_path = SCREENSHOT_DIR / f"error_{article['title'][:20]}.png"
             page.screenshot(path=str(screenshot_path))
             logger.error(
-                f"note操作がタイムアウトしました: {article.title} - {e} "
+                f"note操作がタイムアウトしました: {article['title']} - {e} "
                 f"スクリーンショット: {screenshot_path}"
             )
             raise NotePostingError(str(e)) from e
