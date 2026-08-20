@@ -48,9 +48,9 @@ def generate_article(
 
     for attempt in range(1, max_retries + 1):
         try:
-            # 正常に認識される gemini-2.0-flash を直接指定
+            # 正常に認識される gemini-3.6-flash を直接指定
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-3.6-flash",
                 contents=prompt,
             )
             text = response.text.strip()
