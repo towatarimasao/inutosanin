@@ -1,5 +1,6 @@
 """記事および見出し画像の生成モジュール（完全無料・新SDK版）"""
 
+import json
 import urllib.parse
 from pathlib import Path
 import requests
@@ -53,15 +54,23 @@ def generate_article(
                 model="gemini-3.6-flash",
                 contents=prompt,
             )
-            text = response.text.strip()
+                        text = response.text.strip()
 
-            lines = text.split("\n")
-            title = lines[0].replace("タイトル：", "").replace("#", "").strip()
-            body = "\n".join(lines[1:]).strip()
+            # ```json や ``` で囲まれている場合は取り除く
+            if text.startswith("```"):
+                text = text.split("\n", 1)[1] if "\n" in text else text
+                if text.endswith("```"):
+                    text = text.rsplit("```", 1)[0]
+                text = text.strip()
+                if text.lower().startswith("json"):
+                    text = text[4:].strip()
+
+            parsed = json.loads(text)
 
             return {
-                "title": title,
-                "body": body,
+                "title": parsed["title"],
+                "body": parsed["body"],
+                "tags": parsed.get("tags", []),
                 "source_url": news_item.url,
                 "source_title": news_item.title,
             }
