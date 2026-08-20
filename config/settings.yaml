@@ -29,7 +29,7 @@ note:
   headless: false
   home_url: "https://note.com/"
   selectors:
-    post_link: "a:text-is('投稿')"
+    post_link: "a[href='/notes/new']"
     title_input: "textarea[placeholder='記事タイトル']"
     body_editor: "div.note-common-styles__textnote-body"
     save_draft_button: "button:has-text('下書き保存')"
