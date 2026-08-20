@@ -33,7 +33,7 @@ note:
     title_input: "textarea[placeholder='記事タイトル']"
     body_editor: "div.note-common-styles__textnote-body"
     save_draft_button: "button:has-text('下書き保存')"
-    eyecatch_add_button: "button[aria-label='画像を追加']"
+    eyecatch_add_button: "button:above(textarea[placeholder='記事タイトル'])"
     eyecatch_upload_menu_item: "text=画像をアップロード"
     eyecatch_file_input: "#note-editor-eyecatch-input"
     eyecatch_crop_save_button: "div.ReactModal__Overlay button:has-text('保存')"
