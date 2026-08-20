@@ -54,8 +54,7 @@ def generate_article(
                 model="gemini-3.6-flash",
                 contents=prompt,
             )
-                        text = response.text.strip()
-
+            text = response.text.strip()            
             # ```json や ``` で囲まれている場合は取り除く
             if text.startswith("```"):
                 text = text.split("\n", 1)[1] if "\n" in text else text
