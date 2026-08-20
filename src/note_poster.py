@@ -54,9 +54,9 @@ def _build_body_with_hashtags(article: GeneratedArticle) -> str:
     noteの下書き保存ではハッシュタグ欄への自動入力が永続化されないため、
     人手で公開する際にコピーして使えるよう本文末尾に候補を残す。
     """
-    if not article['tags']:
+    if not article.get('tags'):
         return article['body']
-    hashtag_line = " ".join(f"#{tag}" for tag in article['tags'])
+    hashtag_line = " ".join(f"#{tag}" for tag in article.get('tags', []))
     return f"{article['body']}\n\n---\n...【ハッシュタグ候補（公開時に手動で設定してください）】\n{hashtag_line}"
 
 
