@@ -54,10 +54,10 @@ def _build_body_with_hashtags(article: GeneratedArticle) -> str:
     noteの下書き保存ではハッシュタグ欄への自動入力が永続化されないため、
     人手で公開する際にコピーして使えるよう本文末尾に候補を残す。
     """
-    if not article.tags:
-        return article.body
-    hashtag_line = " ".join(f"#{tag}" for tag in article.tags)
-    return f"{article.body}\n\n---\n【ハッシュタグ候補（公開時に手動で設定してください）】\n{hashtag_line}"
+    if not article.get('tags'):
+        return article['body']
+    hashtag_line = " ".join(f"#{tag}" for tag in article.get('tags', []))
+    return f"{article['body']}\n\n---\n...【ハッシュタグ候補（公開時に手動で設定してください）】\n{hashtag_line}"
 
 
 def _upload_eyecatch_image(page, selectors: dict, image_path: Path) -> None:
@@ -115,14 +115,14 @@ def save_draft(article: GeneratedArticle, note_config: dict, image_path: Path | 
                     raise NotePostingError(f"見出し画像ファイルが見つかりません: {image_path}")
                 _upload_eyecatch_image(page, selectors, image_path)
 
-            page.fill(selectors["title_input"], article.title)
+            page.fill(selectors["title_input"], article['title'])
             page.click(selectors["body_editor"])
             page.keyboard.type(_build_body_with_hashtags(article))
 
             page.click(selectors["save_draft_button"])
             page.wait_for_timeout(2000)  # 保存完了を待つ
 
-            logger.info(f"下書き保存に成功しました: {article.title}")
+            logger.info(f"下書き保存に成功しました: {article['title']}")
 
         except PlaywrightTimeoutError as e:
             screenshot_path = SCREENSHOT_DIR / f"error_{article['title'][:20]}.png"

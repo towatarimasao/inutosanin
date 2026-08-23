@@ -1,5 +1,6 @@
 """記事および見出し画像の生成モジュール（完全無料・新SDK版）"""
 
+import json
 import random
 import urllib.parse
 from io import BytesIO
@@ -62,15 +63,22 @@ def generate_article(
                 model="gemini-3.6-flash",
                 contents=prompt,
             )
-            text = response.text.strip()
+            text = response.text.strip()            
+            # ```json や ``` で囲まれている場合は取り除く
+            if text.startswith("```"):
+                text = text.split("\n", 1)[1] if "\n" in text else text
+                if text.endswith("```"):
+                    text = text.rsplit("```", 1)[0]
+                text = text.strip()
+                if text.lower().startswith("json"):
+                    text = text[4:].strip()
 
-            lines = text.split("\n")
-            title = lines[0].replace("タイトル：", "").replace("#", "").strip()
-            body = "\n".join(lines[1:]).strip()
+            parsed = json.loads(text)
 
             return {
-                "title": title,
-                "body": body,
+                "title": parsed["title"],
+                "body": parsed["body"],
+                "tags": parsed.get("tags", []),
                 "source_url": news_item.url,
                 "source_title": news_item.title,
             }
@@ -96,8 +104,8 @@ def generate_eyecatch_image(
             f"Cute dog in Japan, warm hand-drawn illustration style, {article['title'][:20]}, "
             "San'in coastal landscape with sea and sandy beach in background, "
             "bright warm color palette, gentle storybook illustration, "
-            "full body shot, small subject in frame, centered, "
-            "lots of headroom and empty space around, wide angle, "
+            "full body shot of the dog clearly visible in the foreground, centered, "
+            "wide angle, "
             "no text, no logo, no signage"
         )
         encoded_prompt = urllib.parse.quote(prompt_keywords)
