@@ -56,7 +56,7 @@ jobs:
         run: python src/main.py
 
       - name: 失敗時にログ・スクリーンショットをアーティファクトとして保存
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: dog-note-agent-logs
