@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Header from "@/app/_components/Header";
+import Footer from "@/app/_components/Footer";
 
 type Status = "idle" | "submitting" | "done" | "error";
 
@@ -50,25 +52,31 @@ export default function ContactPage() {
 
   if (status === "done") {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#F7F1E7" }}>
-        <div className="text-center px-6 py-16 max-w-md">
-          <p className="text-5xl mb-6">🐾</p>
-          <h1 className="text-2xl font-bold mb-4" style={{ color: "#2A2521" }}>
-            ありがとうございました！
-          </h1>
-          <p className="text-sm leading-relaxed" style={{ color: "#6B6460" }}>
-            お問い合わせを受け付けました。<br />
-            内容を確認のうえ、必要に応じてご連絡いたします。
-          </p>
-        </div>
-      </div>
+      <>
+        <Header />
+        <main className="flex flex-col flex-1 items-center justify-center py-20" style={{ backgroundColor: "#F7F1E7" }}>
+          <div className="text-center px-6 max-w-md">
+            <p className="text-5xl mb-6">🐾</p>
+            <h1 className="text-2xl font-bold mb-4" style={{ color: "#2A2521" }}>
+              ありがとうございました！
+            </h1>
+            <p className="text-sm leading-relaxed" style={{ color: "#6B6460" }}>
+              お問い合わせを受け付けました。<br />
+              内容を確認のうえ、必要に応じてご連絡いたします。
+            </p>
+          </div>
+        </main>
+        <Footer />
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen pb-20" style={{ backgroundColor: "#F7F1E7", color: "#2A2521" }}>
+    <>
+      <Header />
+      <main className="flex flex-col flex-1 pb-20" style={{ backgroundColor: "#F7F1E7", color: "#2A2521" }}>
 
-      {/* ヘッダー */}
+      {/* ページヘッダー */}
       <div className="px-4 py-10 text-center border-b" style={{ borderColor: "#E0D8CC" }}>
         <p className="text-xs font-semibold tracking-widest mb-2" style={{ color: "#D2691E" }}>
           CONTACT
@@ -179,6 +187,8 @@ export default function ContactPage() {
         </div>
 
       </form>
-    </div>
+      </main>
+      <Footer />
+    </>
   );
 }
