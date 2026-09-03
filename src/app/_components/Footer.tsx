@@ -12,7 +12,7 @@ const footerLinks = [
   { label: "山陰産ドッグフード", href: "/dog-food" },
   { label: "トピックス", href: "/#topics" },
   { label: "このサイトについて", href: "/about" },
-  { label: "お問い合わせ", href: "#" },
+  { label: "お問い合わせ", href: "/contact" },
   { label: "スペシャルサンクス", href: "/thanks" },
 ];
 

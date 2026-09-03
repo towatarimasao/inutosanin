@@ -19,7 +19,7 @@ const mobileMenuItems = [
   ...spotItems,
   { label: "トピックス", href: "/#topics" },
   { label: "このサイトについて", href: "/about" },
-  { label: "お問い合わせ", href: "#" },
+  { label: "お問い合わせ", href: "/contact" },
 ];
 
 export default function Header() {
@@ -111,12 +111,12 @@ export default function Header() {
           </Link>
 
           {/* お問い合わせ */}
-          <a
-            href="#"
+          <Link
+            href="/contact"
             className="border border-foreground/15 rounded-full px-4 py-1.5 text-sm hover:bg-accent/10 hover:border-accent/30 hover:text-accent transition-all"
           >
             お問い合わせ
-          </a>
+          </Link>
         </nav>
 
         {/* ハンバーガーボタン（スマホのみ表示） */}
