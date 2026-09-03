@@ -24,10 +24,9 @@
   「絶対に公開しない」という制約とは両立できない。そのため、ハッシュタグの自動確定は行わず、
   代わりにタグ候補を本文末尾にテキストとして追記する（公開時に人手でハッシュタグ欄へ
   コピーして使うことを想定）。
-- 見出し画像のアップロードは、下書き保存後も画像が保持されることを確認済み。
-  アップロード手順は次の通り: 「画像を追加」ボタン→「画像をアップロード」メニュー項目→
-  動的に生成される input[type=file] に set_input_files →
-  トリミングモーダルの「保存」ボタンをクリックして確定する。
+- 見出し画像の生成・アップロードは行わない（廃止）。note.comのUI変更に対して
+  Playwrightのセレクタが壊れやすく、運用コストが見合わなかったため、
+  見出し画像は公開時に人手で別途設定する運用に変更した。
 """
 
 from __future__ import annotations
@@ -54,31 +53,18 @@ def _build_body_with_hashtags(article: GeneratedArticle) -> str:
     noteの下書き保存ではハッシュタグ欄への自動入力が永続化されないため、
     人手で公開する際にコピーして使えるよう本文末尾に候補を残す。
     """
-    if not article.tags:
-        return article.body
-    hashtag_line = " ".join(f"#{tag}" for tag in article.tags)
-    return f"{article.body}\n\n---\n【ハッシュタグ候補（公開時に手動で設定してください）】\n{hashtag_line}"
+    if not article['tags']:
+        return article['body']
+    hashtag_line = " ".join(f"#{tag}" for tag in article['tags'])
+    return f"{article['body']}\n\n---\n【ハッシュタグ候補（公開時に手動で設定してください）】\n{hashtag_line}"
 
 
-def _upload_eyecatch_image(page, selectors: dict, image_path: Path) -> None:
-    """見出し画像をアップロードする"""
-    page.click(selectors["eyecatch_add_button"])
-    page.wait_for_timeout(1000)
-    page.click(selectors["eyecatch_upload_menu_item"])
-    page.wait_for_timeout(1000)
-    page.set_input_files(selectors["eyecatch_file_input"], str(image_path))
-    page.wait_for_timeout(2000)
-    page.click(selectors["eyecatch_crop_save_button"])
-    page.wait_for_timeout(2000)
-
-
-def save_draft(article: GeneratedArticle, note_config: dict, image_path: Path | None = None) -> None:
-    """記事をnoteの下書きとして保存する
+def save_draft(article: GeneratedArticle, note_config: dict) -> None:
+    """記事をnoteの下書きとして保存する（見出し画像は扱わない）
 
     Args:
         article: 保存する記事
         note_config: settings.yamlのnoteセクション（selectors, url等を含む）
-        image_path: 見出し画像として使うファイルのパス（省略時はアップロードしない）
     """
     selectors = note_config["selectors"]
     storage_state_path = Path(note_config["storage_state_path"])
@@ -110,25 +96,20 @@ def save_draft(article: GeneratedArticle, note_config: dict, image_path: Path | 
                 page.click(selectors["post_link"])
             page.wait_for_timeout(3000)
 
-            if image_path is not None:
-                if not image_path.exists():
-                    raise NotePostingError(f"見出し画像ファイルが見つかりません: {image_path}")
-                _upload_eyecatch_image(page, selectors, image_path)
-
-            page.fill(selectors["title_input"], article.title)
+            page.fill(selectors["title_input"], article['title'])
             page.click(selectors["body_editor"])
             page.keyboard.type(_build_body_with_hashtags(article))
 
             page.click(selectors["save_draft_button"])
             page.wait_for_timeout(2000)  # 保存完了を待つ
 
-            logger.info(f"下書き保存に成功しました: {article.title}")
+            logger.info(f"下書き保存に成功しました: {article['title']}")
 
         except PlaywrightTimeoutError as e:
-            screenshot_path = SCREENSHOT_DIR / f"error_{article.title[:20]}.png"
+            screenshot_path = SCREENSHOT_DIR / f"error_{article['title'][:20]}.png"
             page.screenshot(path=str(screenshot_path))
             logger.error(
-                f"note操作がタイムアウトしました: {article.title} - {e} "
+                f"note操作がタイムアウトしました: {article['title']} - {e} "
                 f"スクリーンショット: {screenshot_path}"
             )
             raise NotePostingError(str(e)) from e

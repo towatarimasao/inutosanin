@@ -15,7 +15,7 @@ fetch:
 
 # 記事生成設定（無料枠で正常動作する2.0-flashを指定）
 generation:
-  model: "gemini-2.0-flash"
+  model: "gemini-3.6-flash"
   max_retries: 3
   prompt_template: "prompts/article_prompt.txt"
   media_name: "イヌとサンイン"
@@ -29,11 +29,11 @@ note:
   headless: false
   home_url: "https://note.com/"
   selectors:
-    post_link: "a:has-text('投稿')"
+    post_link: "a[href='/notes/new']"
     title_input: "textarea[placeholder='記事タイトル']"
     body_editor: "div.note-common-styles__textnote-body"
     save_draft_button: "button:has-text('下書き保存')"
-    eyecatch_add_button: "button[aria-label='画像を追加']"
+    eyecatch_add_button: "[aria-label='画像を追加']"
     eyecatch_upload_menu_item: "text=画像をアップロード"
     eyecatch_file_input: "#note-editor-eyecatch-input"
     eyecatch_crop_save_button: "div.ReactModal__Overlay button:has-text('保存')"

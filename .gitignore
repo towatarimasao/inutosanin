@@ -6,3 +6,6 @@ logs/*.log
 logs/*.json
 logs/*.png
 !logs/.gitkeep
+.DS_Store
+logs/images/
+FETCH_HEAD

@@ -11,9 +11,7 @@ from dotenv import load_dotenv
 
 from article_generator import (
     ArticleGenerationError,
-    ImageGenerationError,
     generate_article,
-    generate_eyecatch_image,
 )
 from logger import get_logger
 from note_poster import NotePostingError, save_draft
@@ -78,20 +76,8 @@ def main() -> None:
             skip_count += 1
             continue
 
-        image_path = None
         try:
-            image_path = generate_eyecatch_image(
-                article=article,
-                api_key=gemini_api_key,
-                image_model_name=generation_config["image_model"],
-                media_description=generation_config["media_description"],
-                save_dir=BASE_DIR / generation_config["image_save_dir"],
-            )
-        except ImageGenerationError as e:
-            logger.warning(f"見出し画像の生成に失敗したため、画像なしで下書き保存を続行します: {e}")
-
-        try:
-            save_draft(article=article, note_config=note_config, image_path=image_path)
+            save_draft(article=article, note_config=note_config)
         except NotePostingError as e:
             logger.error(f"下書き保存をスキップしました: {e}")
             skip_count += 1

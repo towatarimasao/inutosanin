@@ -1,8 +1,7 @@
-"""記事および見出し画像の生成モジュール（完全無料・新SDK版）"""
+"""記事生成モジュール（完全無料・新SDK版、見出し画像は扱わない）"""
 
-import urllib.parse
 from pathlib import Path
-import requests
+
 from google import genai
 
 from logger import get_logger
@@ -12,11 +11,6 @@ logger = get_logger(__name__)
 
 class ArticleGenerationError(Exception):
     """記事生成時のエラー"""
-    pass
-
-
-class ImageGenerationError(Exception):
-    """画像生成時のエラー"""
     pass
 
 
@@ -48,20 +42,35 @@ def generate_article(
 
     for attempt in range(1, max_retries + 1):
         try:
-            # 正常に認識される gemini-2.0-flash を直接指定
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-3.6-flash",
                 contents=prompt,
             )
             text = response.text.strip()
 
-            lines = text.split("\n")
-            title = lines[0].replace("タイトル：", "").replace("#", "").strip()
-            body = "\n".join(lines[1:]).strip()
+            # Geminiの応答は ```json ... ``` のコードブロックに包まれることが
+            # あるため、それを取り除いてからJSONとしてパースする
+            if text.startswith("```"):
+                text = text.split("\n", 1)[1] if "\n" in text else text
+                if text.endswith("```"):
+                    text = text[:-3]
+                text = text.strip()
+                if text.lower().startswith("json"):
+                    text = text[4:].strip()
+
+            import json
+
+            data = json.loads(text)
+            title = str(data.get("title", "")).strip()
+            body = str(data.get("body", "")).strip()
+            tags = data.get("tags", [])
+            if not isinstance(tags, list):
+                tags = []
 
             return {
                 "title": title,
                 "body": body,
+                "tags": tags,
                 "source_url": news_item.url,
                 "source_title": news_item.title,
             }
@@ -70,34 +79,3 @@ def generate_article(
             if attempt == max_retries:
                 raise ArticleGenerationError(f"記事生成に失敗しました: {e}")
 
-
-def generate_eyecatch_image(
-    article: dict,
-    api_key: str,
-    image_model_name: str,
-    media_description: str,
-    save_dir: Path,
-) -> Path:
-    """Pollinations.ai（完全無料API）を使用してアイキャッチ画像を生成・保存する"""
-    save_dir.mkdir(parents=True, exist_ok=True)
-    image_path = save_dir / "eyecatch.png"
-
-    try:
-        prompt_keywords = f"Cute dog in Japan, style illustration, {article['title'][:20]}"
-        encoded_prompt = urllib.parse.quote(prompt_keywords)
-        image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1200&height=630&nologo=true"
-
-        logger.info("Pollinations.ai (無料画像API) にて画像を取得中...")
-        res = requests.get(image_url, timeout=30)
-
-        if res.status_code == 200:
-            with open(image_path, "wb") as f:
-                f.write(res.content)
-            logger.info(f"見出し画像を無料取得・保存しました: {image_path}")
-            return image_path
-        else:
-            raise ImageGenerationError(f"画像取得ステータスエラー: {res.status_code}")
-
-    except Exception as e:
-        logger.error(f"無料画像生成エラー: {e}")
-        raise ImageGenerationError(e)
