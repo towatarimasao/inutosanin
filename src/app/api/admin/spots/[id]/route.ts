@@ -14,7 +14,7 @@ export async function PATCH(
 ) {
   const { id } = await params;
   const body = await req.json();
-  const { name, category, address, phone, business_hours, url, photo_url, pet_condition, listing_status, dog_size, is_active } = body;
+  const { name, category, address, phone, business_hours, url, photo_url, pet_condition, description, listing_status, dog_size, is_active } = body;
 
   const { error } = await getServiceClient()
     .from("spots")
@@ -27,6 +27,7 @@ export async function PATCH(
       url:            url            || null,
       photo_url:      photo_url      || null,
       pet_condition:  pet_condition  || null,
+      description:    description    || null,
       listing_status: listing_status || null,
       dog_size:       dog_size       || null,
       is_active:      typeof is_active === "boolean" ? is_active : true,

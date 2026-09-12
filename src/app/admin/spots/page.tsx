@@ -38,6 +38,7 @@ type Spot = {
   listing_status: string | null;
   pet_condition: string | null;
   dog_size: string | null;
+  description: string | null;
   is_active: boolean;
   created_at: string;
 };
@@ -51,6 +52,7 @@ type EditForm = {
   url: string;
   photo_url: string;
   pet_condition: string;
+  description: string;
   listing_status: string;
   dog_size: string;
   is_active: boolean;
@@ -104,6 +106,7 @@ function EditModal({
     url:            spot.url            ?? "",
     photo_url:      spot.photo_url      ?? "",
     pet_condition:  spot.pet_condition  ?? "",
+    description:    spot.description    ?? "",
     listing_status: spot.listing_status ?? "pending_review",
     dog_size:       spot.dog_size       ?? "",
     is_active:      spot.is_active,
@@ -190,6 +193,17 @@ function EditModal({
             onChange={(e) => setForm({ ...form, photo_url: e.target.value })}
             placeholder="https://..."
             className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">説明文（紹介文）</label>
+          <textarea
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            placeholder="例：鳥取砂丘のすぐそばにあるドッグラン…"
+            rows={3}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-500 resize-none"
           />
         </div>
 
