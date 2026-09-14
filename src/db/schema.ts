@@ -45,3 +45,21 @@ export const topics = pgTable("topics", {
 
 export type Topic = typeof topics.$inferSelect;
 export type NewTopic = typeof topics.$inferInsert;
+
+// わんこグッズ比較（楽天アフィリエイトを使った犬用品比較記事）テーブル
+export const wankoGoodsArticles = pgTable("wanko_goods_articles", {
+  id: serial("id").primaryKey(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  title: text("title").notNull(),
+  // 一覧カードの説明文・meta descriptionに使う要約
+  excerpt: text("excerpt").notNull(),
+  // Markdown本文（楽天アフィリエイトの生HTML埋め込みタグを含む）。
+  // 表示時にmarkedでHTML化した上でDOMPurifyでサニタイズする
+  body_md: text("body_md").notNull(),
+  thumbnail_url: text("thumbnail_url"),
+  published_at: timestamp("published_at").notNull().defaultNow(),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type WankoGoodsArticle = typeof wankoGoodsArticles.$inferSelect;
+export type NewWankoGoodsArticle = typeof wankoGoodsArticles.$inferInsert;
