@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import type { Metadata, ResolvingMetadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Header from "@/app/_components/Header";
@@ -125,9 +126,22 @@ export default async function WankoGoodsDetailPage({
             {formatDate(article.published_at)}
           </time>
 
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-foreground mt-3 mb-10 leading-snug">
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-foreground mt-3 mb-8 leading-snug">
             {article.title}
           </h1>
+
+          {article.thumbnail_url && (
+            <div className="relative aspect-video rounded-2xl overflow-hidden bg-[#FBEADD] mb-10">
+              <Image
+                src={article.thumbnail_url}
+                alt={article.title}
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="object-cover"
+              />
+            </div>
+          )}
 
           <div
             className="wanko-article-body"
