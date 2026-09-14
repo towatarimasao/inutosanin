@@ -1,9 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // isomorphic-dompurify（内部でjsdomを使用）はESM/CJS混在でTurbopackのバンドル対象に
-  // すると ERR_REQUIRE_ESM で落ちるため、サーバー側のrequireにそのまま任せる
-  serverExternalPackages: ["isomorphic-dompurify", "jsdom"],
   images: {
     deviceSizes: [400, 800, 1200],
     imageSizes: [64, 128, 256],
