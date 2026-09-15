@@ -27,6 +27,12 @@
 - 見出し画像の生成・アップロードは行わない（廃止）。note.comのUI変更に対して
   Playwrightのセレクタが壊れやすく、運用コストが見合わなかったため、
   見出し画像は公開時に人手で別途設定する運用に変更した。
+- 2026/09/15、生成された本文自体は正常（100文字以上）だったにもかかわらず、
+  `page.keyboard.type()` でエディタに入力した内容が反映されず、本文が空のまま
+  下書き保存されてしまう事象が発生した（原因はエディタのフォーカス喪失かnote.com側の
+  UI変更と推測されるが未特定）。そのため保存ボタンを押す前に、エディタへ実際に
+  反映された文字数を検証するガードを追加した。反映が不十分な場合は下書き保存せずに
+  エラーとして扱い、次回実行時に再試行される。
 """
 
 from __future__ import annotations
@@ -41,6 +47,10 @@ from models import GeneratedArticle
 logger = get_logger(__name__)
 
 SCREENSHOT_DIR = Path(__file__).resolve().parent.parent / "logs"
+
+# エディタへの入力反映チェック：実際に反映された文字数が
+# 想定本文の何割未満なら「入力が反映されていない」とみなすか
+BODY_REFLECTION_RATIO_THRESHOLD = 0.5
 
 
 class NotePostingError(Exception):
@@ -98,7 +108,26 @@ def save_draft(article: GeneratedArticle, note_config: dict) -> None:
 
             page.fill(selectors["title_input"], article['title'])
             page.click(selectors["body_editor"])
-            page.keyboard.type(_build_body_with_hashtags(article))
+
+            body_text = _build_body_with_hashtags(article)
+            page.keyboard.type(body_text)
+            page.wait_for_timeout(1000)
+
+            # 本文が実際にエディタへ反映されたかを、保存前に検証する。
+            # 生成された本文（article['body']）自体は正常でも、エディタの
+            # フォーカス喪失やnote.com側のUI変更によって入力が反映されず、
+            # 本文が空のまま「保存成功」になってしまう事象が確認されたため。
+            actual_text = page.locator(selectors["body_editor"]).inner_text().strip()
+            expected_len = len(body_text)
+            actual_len = len(actual_text)
+            if expected_len > 0 and actual_len < expected_len * BODY_REFLECTION_RATIO_THRESHOLD:
+                screenshot_path = SCREENSHOT_DIR / f"error_empty_body_{article['title'][:20]}.png"
+                page.screenshot(path=str(screenshot_path))
+                raise NotePostingError(
+                    f"本文がエディタに正しく反映されていません"
+                    f"（想定{expected_len}文字 / 実際の反映{actual_len}文字）。"
+                    f"下書き保存を中止しました。スクリーンショット: {screenshot_path}"
+                )
 
             page.click(selectors["save_draft_button"])
             page.wait_for_timeout(2000)  # 保存完了を待つ
