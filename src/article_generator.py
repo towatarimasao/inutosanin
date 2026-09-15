@@ -8,6 +8,11 @@ from logger import get_logger
 
 logger = get_logger(__name__)
 
+# 本文がこの文字数未満の場合は「生成失敗」とみなしてリトライ・スキップする。
+# 2026/09/15、Geminiが構文的には正しいJSONを返しつつ body が空文字になり、
+# 本文なしの下書きがそのままnoteに保存される不具合が発生したため導入。
+MIN_BODY_LENGTH = 100
+
 
 class ArticleGenerationError(Exception):
     """記事生成時のエラー"""
@@ -43,10 +48,10 @@ def generate_article(
     for attempt in range(1, max_retries + 1):
         try:
             response = client.models.generate_content(
-                model="gemini-3.6-flash",
+                model=model_name,
                 contents=prompt,
             )
-            text = response.text.strip()
+            text = (response.text or "").strip()
 
             # Geminiの応答は ```json ... ``` のコードブロックに包まれることが
             # あるため、それを取り除いてからJSONとしてパースする
@@ -67,6 +72,19 @@ def generate_article(
             if not isinstance(tags, list):
                 tags = []
 
+            # タイトル・本文が空、または本文が極端に短い場合は
+            # 「JSONとしては正しいが中身が空」の不良応答とみなし、失敗扱いにする。
+            if not title or not body or len(body) < MIN_BODY_LENGTH:
+                finish_reason = None
+                try:
+                    finish_reason = response.candidates[0].finish_reason
+                except Exception:
+                    pass
+                raise ArticleGenerationError(
+                    f"生成結果が不十分です（title_len={len(title)}, "
+                    f"body_len={len(body)}, finish_reason={finish_reason}）"
+                )
+
             return {
                 "title": title,
                 "body": body,
@@ -78,4 +96,3 @@ def generate_article(
             logger.warning(f"記事生成失敗 ({attempt}/{max_retries}回目): {e}")
             if attempt == max_retries:
                 raise ArticleGenerationError(f"記事生成に失敗しました: {e}")
-
