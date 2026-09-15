@@ -17,6 +17,7 @@ const spotItems = [
 
 const mobileMenuItems = [
   ...spotItems,
+  { label: "わんこグッズ比較", href: "/wanko-goods" },
   { label: "トピックス", href: "/#topics" },
   { label: "このサイトについて", href: "/about" },
   { label: "お問い合わせ", href: "/contact" },
@@ -93,6 +94,14 @@ export default function Header() {
               </div>
             )}
           </div>
+
+          {/* わんこグッズ比較 */}
+          <Link
+            href="/wanko-goods"
+            className="border border-foreground/15 rounded-full px-4 py-1.5 text-sm hover:bg-accent/10 hover:border-accent/30 hover:text-accent transition-all"
+          >
+            わんこグッズ比較
+          </Link>
 
           {/* トピックス */}
           <Link

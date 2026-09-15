@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 import { supabase } from "@/lib/supabase";
 import { AREAS } from "@/lib/areas";
+import { db } from "@/db";
+import { wankoGoodsArticles } from "@/db/schema";
 
 const BASE_URL = "https://www.inutosanin.jp";
 
@@ -35,6 +37,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.7,
     },
+    {
+      url: `${BASE_URL}/wanko-goods`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
   ];
 
   const categoryPages: MetadataRoute.Sitemap = CATEGORIES.map((category) => ({
@@ -64,5 +72,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...fixedPages, ...categoryPages, ...cityPages, ...spotPages];
+  // テーブル未作成・DB未接続でもサイトマップ全体の生成を止めない
+  const wankoGoodsArticleRows = await db
+    .select()
+    .from(wankoGoodsArticles)
+    .catch((e) => {
+      console.error("[sitemap] wanko-goods fetch error:", e);
+      return [];
+    });
+
+  const wankoGoodsPages: MetadataRoute.Sitemap = wankoGoodsArticleRows.map((article) => ({
+    url: `${BASE_URL}/wanko-goods/${article.slug}`,
+    lastModified: article.published_at,
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
+
+  return [...fixedPages, ...categoryPages, ...cityPages, ...spotPages, ...wankoGoodsPages];
 }

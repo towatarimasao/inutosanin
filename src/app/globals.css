@@ -35,3 +35,82 @@ button:focus-visible {
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* わんこグッズ比較：Markdownから変換した記事本文のスタイル */
+.wanko-article-body {
+  line-height: 1.85;
+  color: var(--foreground);
+}
+.wanko-article-body h2 {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.375rem;
+  font-weight: 700;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+.wanko-article-body h3 {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+.wanko-article-body p {
+  margin-bottom: 1.25rem;
+}
+.wanko-article-body ul,
+.wanko-article-body ol {
+  margin: 0 0 1.25rem 1.25rem;
+  list-style-position: outside;
+}
+.wanko-article-body ul {
+  list-style-type: disc;
+}
+.wanko-article-body ol {
+  list-style-type: decimal;
+}
+.wanko-article-body li {
+  margin-bottom: 0.4rem;
+}
+.wanko-article-body strong {
+  font-weight: 700;
+}
+.wanko-article-body hr {
+  border: none;
+  border-top: 1px solid rgba(42, 37, 33, 0.12);
+  margin: 2.5rem 0;
+}
+.wanko-article-body a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.wanko-article-body > table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+}
+.wanko-article-body > table th,
+.wanko-article-body > table td {
+  border: 1px solid rgba(42, 37, 33, 0.12);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+.wanko-article-body > table th {
+  background: rgba(210, 105, 30, 0.08);
+  font-weight: 700;
+}
+/* 楽天アフィリエイト埋め込みタグ内のtableはレイアウト用なので上記の罫線を当てない */
+.wanko-article-body table table,
+.wanko-article-body table table th,
+.wanko-article-body table table td {
+  border: none;
+  padding: 0;
+  background: none;
+}
+.wanko-article-body table table {
+  width: auto;
+  margin: 1rem 0;
+}

@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await client
       .from("spots")
-      .select("id, name, category, address, phone, business_hours, url, photo_url, listing_status, is_active, created_at, pet_condition, dog_size")
+      .select("id, name, category, address, phone, business_hours, url, photo_url, listing_status, is_active, created_at, pet_condition, dog_size, description")
       .order("created_at", { ascending: false })
       .range(from, to);
 

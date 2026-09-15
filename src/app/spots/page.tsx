@@ -258,6 +258,21 @@ export default async function SpotsPage({
           </div>
         )}
 
+        {/* お出かけグッズの案内：dogrunカテゴリ選択時のみ表示 */}
+        {activeCategory === 'dogrun' && (
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4">
+            <Link
+              href="/wanko-goods"
+              className="flex items-center justify-between gap-3 bg-white rounded-xl border border-accent/15 px-5 py-3.5 hover:border-accent/40 hover:shadow-sm transition-all"
+            >
+              <span className="text-sm text-foreground">
+                🐾 ドッグランへのお出かけ前に、防寒・レインウェアなどの「わんこグッズ比較」もチェック
+              </span>
+              <span className="text-sm font-semibold text-accent whitespace-nowrap">見る →</span>
+            </Link>
+          </div>
+        )}
+
         {/* スポット一覧 */}
         <section className="px-4 sm:px-6 py-10">
           <div className="max-w-5xl mx-auto">

@@ -10,6 +10,7 @@ const footerLinks = [
   { label: "ペット用品店・サロン", href: "/spots?category=shop" },
   { label: "保護犬情報", href: "/spots?category=adoption" },
   { label: "山陰産ドッグフード", href: "/dog-food" },
+  { label: "わんこグッズ比較", href: "/wanko-goods" },
   { label: "トピックス", href: "/#topics" },
   { label: "このサイトについて", href: "/about" },
   { label: "お問い合わせ", href: "/contact" },

@@ -5,6 +5,9 @@ import HeroSlideshow from "./_components/HeroSlideshow";
 import Header from "./_components/Header";
 import Footer from "./_components/Footer";
 import { AREAS } from "@/lib/areas";
+import { db } from "@/db";
+import { wankoGoodsArticles } from "@/db/schema";
+import { desc } from "drizzle-orm";
 
 export const metadata: Metadata = {
   title: "イヌとサンイン | 山陰の犬オーナーのためのポータルサイト",
@@ -144,8 +147,23 @@ function formatPubDate(pubDate: string) {
   }).replace(/\//g, ".");
 }
 
+// わんこグッズ比較の最新記事を取得（DB未接続・テーブル未作成でもトップページ全体は落とさない）
+async function fetchWankoGoodsList() {
+  try {
+    return await db
+      .select()
+      .from(wankoGoodsArticles)
+      .orderBy(desc(wankoGoodsArticles.published_at))
+      .limit(3);
+  } catch (e) {
+    console.error("[wanko-goods] fetch error:", e);
+    return [];
+  }
+}
+
 export default async function Home() {
   const noteTopics = await fetchNoteTopics();
+  const wankoGoodsList = await fetchWankoGoodsList();
 
   return (
     <>
@@ -155,6 +173,61 @@ export default async function Home() {
       <main className="flex flex-col flex-1 bg-[#FAF6F1]">
         {/* ヒーローセクション */}
         <HeroSlideshow />
+
+        {/* わんこグッズ比較（楽天アフィリエイトを使った犬用品比較コーナー） */}
+        {wankoGoodsList.length > 0 && (
+          <section className="bg-[#FAF6F1] px-6 py-16">
+            <div className="max-w-5xl mx-auto">
+              <div className="flex items-end justify-between mb-10 flex-wrap gap-2">
+                <h2 className="font-heading text-2xl font-bold text-foreground">わんこグッズ比較</h2>
+                <Link
+                  href="/wanko-goods"
+                  className="text-sm font-semibold text-accent hover:underline"
+                >
+                  すべて見る →
+                </Link>
+              </div>
+
+              <ul className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {wankoGoodsList.map((article) => (
+                  <li key={article.id}>
+                    <Link
+                      href={`/wanko-goods/${article.slug}`}
+                      className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-accent/15 hover:shadow-lg transition-all duration-200"
+                    >
+                      <div className="relative aspect-video overflow-hidden bg-[#FBEADD]">
+                        {article.thumbnail_url ? (
+                          <Image
+                            src={article.thumbnail_url}
+                            alt={article.title}
+                            fill
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center text-accent/30 text-5xl">
+                            🐾
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-2 p-4 flex-1">
+                        <p className="font-bold text-sm sm:text-base text-foreground line-clamp-2 leading-snug">
+                          {article.title}
+                        </p>
+                        <p className="text-xs sm:text-sm text-subtext line-clamp-2 leading-relaxed">
+                          {article.excerpt}
+                        </p>
+                        <span className="mt-auto pt-2 text-xs sm:text-sm font-semibold text-accent group-hover:underline">
+                          続きを読む →
+                        </span>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
 
         {/* 新着トピックス（note.com RSSフィード） */}
         <section className="bg-[#FAF6F1] px-6 py-16">
