@@ -31,7 +31,7 @@ note:
   selectors:
     post_link: "a[href='/notes/new']"
     title_input: "textarea[placeholder='記事タイトル']"
-    body_editor: "div.note-common-styles__textnote-body"
+    body_editor: "div.note-common-styles__textnote-body[contenteditable='true']"  # 2026/09/16: AIアシスタントパネルと同じクラス名で衝突するため絞り込み
     save_draft_button: "button:has-text('下書き保存')"
     eyecatch_add_button: "[aria-label='画像を追加']"
     eyecatch_upload_menu_item: "text=画像をアップロード"
