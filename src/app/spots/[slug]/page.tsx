@@ -7,6 +7,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import Header from "@/app/_components/Header";
 import Footer from "@/app/_components/Footer";
 import { supabase } from "@/lib/supabase";
+import { findAreaByAddress } from "@/lib/areas";
 import ReportButton from "./ReportButton";
 
 const BASE_URL = "https://www.inutosanin.jp";
@@ -85,6 +86,61 @@ type ResolvedSpot =
   | { kind: "redirect"; slug: string; spot: Spot }
   | { kind: "not_found" };
 
+// meta descriptionの最大文字数目安（検索結果での表示切れを避ける）
+const META_DESCRIPTION_MAX = 120;
+
+function toOneLine(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
+}
+
+// spots.descriptionが未入力のスポット向けに、DBに実在する項目だけから
+// meta descriptionを組み立てる（無い情報は書かない）。
+// 説明文がある場合はそれを最優先で使う。
+function buildMetaDescription(spot: Spot, cityName: string | null): string {
+  if (spot.description) return spot.description;
+
+  const label = CATEGORY_LABELS[spot.category] ?? "スポット";
+  const parts = [`${cityName ?? "山陰"}の${label}「${spot.name}」の犬連れ情報。`];
+  if (spot.pet_condition) parts.push(`ペット同伴条件：${toOneLine(spot.pet_condition)}。`);
+  if (spot.business_hours) parts.push(`営業時間：${toOneLine(spot.business_hours)}。`);
+  if (spot.address) parts.push(`住所：${toOneLine(spot.address)}。`);
+
+  const text = parts.join("");
+  return text.length > META_DESCRIPTION_MAX
+    ? `${text.slice(0, META_DESCRIPTION_MAX - 1)}…`
+    : text;
+}
+
+type RelatedSpot = {
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  address: string | null;
+};
+
+// 同じ市町村の他スポットを最大6件返す（同カテゴリを優先）。内部リンク・回遊の強化用
+async function getRelatedSpots(spot: Spot, cityName: string): Promise<RelatedSpot[]> {
+  const { data, error } = await supabase
+    .from("spots")
+    .select("id, slug, name, category, address")
+    .eq("is_active", true)
+    .eq("listing_status", "published")
+    .ilike("address", `%${cityName}%`)
+    .neq("id", spot.id)
+    .limit(40);
+
+  if (error) {
+    console.error("[Supabase] related spots fetch error:", error);
+    return [];
+  }
+
+  const rows = (data ?? []) as RelatedSpot[];
+  const sameCategory = rows.filter((r) => r.category === spot.category);
+  const others = rows.filter((r) => r.category !== spot.category);
+  return [...sameCategory, ...others].slice(0, 6);
+}
+
 // generateMetadataとページ本体の両方から呼ばれる共通のslug解決処理。
 // 1. slugで検索してヒットすればそれを返す
 // 2. 空振りかつUUID形式ならidで再検索する（旧UUID URL互換）。
@@ -141,20 +197,27 @@ export async function generateMetadata(
   const pageUrl = `${BASE_URL}/spots/${canonicalSlug}`;
   const ogImage = spot.photo_url || spot.image_url || "/images/hero.png";
 
+  const cityName = findAreaByAddress(spot.address)?.city.name ?? null;
+  const categoryLabel = CATEGORY_LABELS[spot.category] ?? "スポット";
+  // 「地名+カテゴリ」で検索するユーザーに届くよう、タイトルにも市町村とカテゴリを入れる
+  const title = cityName ? `${spot.name}（${cityName}の${categoryLabel}）` : spot.name;
+  const description = buildMetaDescription(spot, cityName);
+
   return {
-    title: spot.name,
-    description: spot.description ?? undefined,
+    title,
+    description,
+    alternates: { canonical: pageUrl },
     openGraph: {
       ...parentMeta.openGraph,
-      title: spot.name,
-      description: spot.description ?? undefined,
+      title,
+      description,
       url: pageUrl,
       images: [{ url: ogImage, width: 1200, height: 630, alt: spot.name }],
     },
     twitter: {
       ...parentMeta.twitter,
-      title: spot.name,
-      description: spot.description ?? undefined,
+      title,
+      description,
       images: [ogImage],
     },
   };
@@ -173,6 +236,9 @@ export default async function SpotDetailPage({
 
   const s = resolved.spot;
   const badgeColor = CATEGORY_COLORS[s.category] ?? { bg: "#E2E2E2", text: "#444" };
+  const area = findAreaByAddress(s.address);
+  const areaUrl = area ? `/spots/${area.prefecture.slug}/${area.city.slug}` : null;
+  const relatedSpots = area ? await getRelatedSpots(s, area.city.name) : [];
 
   const googleMapsUrl = s.address
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.address)}`
@@ -232,13 +298,28 @@ export default async function SpotDetailPage({
       <main className="flex flex-col flex-1 bg-[#FAF6F1]">
         <div className="max-w-3xl mx-auto px-6 py-12 w-full">
 
-          {/* 戻るリンク */}
-          <Link
-            href="/spots"
-            className="inline-flex items-center gap-1 text-sm text-subtext hover:text-accent transition-colors mb-8"
-          >
-            ← スポット一覧に戻る
-          </Link>
+          {/* パンくず（市町村ページへの内部リンクを兼ねる） */}
+          <nav aria-label="パンくず" className="text-sm text-subtext mb-8">
+            <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <li>
+                <Link href="/" className="hover:text-accent transition-colors">ホーム</Link>
+              </li>
+              <li aria-hidden="true">›</li>
+              <li>
+                <Link href="/spots" className="hover:text-accent transition-colors">スポット一覧</Link>
+              </li>
+              {area && areaUrl && (
+                <>
+                  <li aria-hidden="true">›</li>
+                  <li>
+                    <Link href={areaUrl} className="hover:text-accent transition-colors">
+                      {area.city.name}
+                    </Link>
+                  </li>
+                </>
+              )}
+            </ol>
+          </nav>
 
           {/* 1. ヘッダーエリア */}
           <div className="mb-6">
@@ -412,6 +493,42 @@ export default async function SpotDetailPage({
           {/* 誤り報告ボタン（vetカテゴリのみ） */}
           {s.category === "vet" && (
             <ReportButton spotId={s.id} spotName={s.name} />
+          )}
+
+          {/* 同じ市町村の他のスポット */}
+          {area && areaUrl && relatedSpots.length > 0 && (
+            <section className="mb-8">
+              <h2 className="font-heading text-lg font-bold text-foreground mb-4">
+                {area.city.name}の他の犬連れOKスポット
+              </h2>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {relatedSpots.map((r) => {
+                  const rColor = CATEGORY_COLORS[r.category] ?? { bg: "#E2E2E2", text: "#444" };
+                  return (
+                    <li key={r.id}>
+                      <Link
+                        href={`/spots/${r.slug}`}
+                        className="flex flex-col gap-1.5 bg-white rounded-xl border border-accent/10 p-4 hover:shadow-md transition-all h-full"
+                      >
+                        <span
+                          className="self-start text-[11px] font-semibold px-2.5 py-0.5 rounded-full"
+                          style={{ backgroundColor: rColor.bg, color: rColor.text }}
+                        >
+                          {CATEGORY_LABELS[r.category] ?? r.category}
+                        </span>
+                        <span className="text-sm font-bold text-foreground leading-snug">{r.name}</span>
+                        {r.address && <span className="text-xs text-subtext">{r.address}</span>}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+              <div className="mt-4 text-center">
+                <Link href={areaUrl} className="text-sm font-semibold text-accent hover:underline">
+                  {area.city.name}の犬連れOKスポットをすべて見る →
+                </Link>
+              </div>
+            </section>
           )}
 
           {/* 戻るリンク（下部） */}

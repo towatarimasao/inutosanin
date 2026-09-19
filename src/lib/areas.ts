@@ -106,3 +106,17 @@ export function getNearbyCities(
     })
     .filter((v): v is { prefectureSlug: string; city: AreaCity } => v !== null);
 }
+
+// 住所文字列から該当する対象市町村を引く（スポット詳細ページの関連スポット・パンくず用）。
+// AREASに含まれない市町村のスポットはnullを返す
+export function findAreaByAddress(
+  address: string | null | undefined
+): { prefecture: AreaPrefecture; city: AreaCity } | null {
+  if (!address) return null;
+  for (const prefecture of AREAS) {
+    for (const city of prefecture.cities) {
+      if (address.includes(city.name)) return { prefecture, city };
+    }
+  }
+  return null;
+}
