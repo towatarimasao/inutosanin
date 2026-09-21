@@ -252,6 +252,14 @@ export default async function SpotDetailPage({
   ].filter((l) => l.href);
 
   const pageUrl = `${BASE_URL}/spots/${s.slug}`;
+
+  // 駐車場：DB上の false は「なし」を確認した値ではなく未確認の既定値だったため、true のときだけ表示する。
+  // 犬のサイズ：all（犬種制限なし）も未確認の既定値だったため表示しない。small/medium/large のみ表示する。
+  const showParking = s.parking === true;
+  const showDogSize =
+    !!s.dog_size &&
+    s.dog_size !== "all" &&
+    (s.category === "restaurant" || s.category === "dogrun");
   const spotImage = s.photo_url || s.image_url || undefined;
 
   const localBusinessJsonLd = {
@@ -387,7 +395,7 @@ export default async function SpotDetailPage({
           </div>
 
           {/* 3. 情報グリッド */}
-          {(s.business_hours || s.phone || s.parking != null || s.dog_size) && (
+          {(s.business_hours || s.phone || showParking || showDogSize) && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               {s.business_hours && (
                 <div className="bg-white rounded-xl border border-accent/10 p-4 flex gap-3">
@@ -412,24 +420,22 @@ export default async function SpotDetailPage({
                   </div>
                 </div>
               )}
-              {s.parking != null && (
+              {showParking && (
                 <div className="bg-white rounded-xl border border-accent/10 p-4 flex gap-3">
                   <span className="text-xl">🅿️</span>
                   <div>
                     <p className="text-xs text-subtext mb-1">駐車場</p>
-                    <p className="text-sm font-medium text-foreground">
-                      {s.parking ? "あり" : "なし"}
-                    </p>
+                    <p className="text-sm font-medium text-foreground">あり</p>
                   </div>
                 </div>
               )}
-              {s.dog_size && (s.category === "restaurant" || s.category === "dogrun") && (
+              {showDogSize && (
                 <div className="bg-white rounded-xl border border-accent/10 p-4 flex gap-3">
                   <span className="text-xl">🐕</span>
                   <div>
                     <p className="text-xs text-subtext mb-1">犬のサイズ</p>
                     <p className="text-sm font-medium text-foreground">
-                      {DOG_SIZE_LABELS[s.dog_size] ?? s.dog_size}
+                      {DOG_SIZE_LABELS[s.dog_size ?? ""] ?? s.dog_size}
                     </p>
                   </div>
                 </div>
