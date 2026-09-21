@@ -52,6 +52,7 @@ const PILL_INACTIVE = "border-foreground/15 text-foreground hover:border-accent/
 
 type Spot = {
   id: string;
+  slug: string;
   name: string;
   category: string;
   address: string | null;
@@ -101,8 +102,10 @@ async function getNearbyCityStats(cityName: string): Promise<NearbyCityStats> {
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<PageParams>;
+  searchParams: Promise<{ category?: string }>;
 }): Promise<Metadata> {
   const { slug: prefecture, city } = await params;
   const area = findArea(prefecture, city);
@@ -110,9 +113,28 @@ export async function generateMetadata({
 
   const { prefecture: pref, city: cityDef } = area;
 
+  const title = `${cityDef.name}の犬連れOKスポット一覧`;
+  const description = `${pref.name}${cityDef.name}の犬連れOKなドッグラン・動物病院・ペットホテル・飲食店・ペット用品店をまとめて紹介`;
+  const { category } = await searchParams;
+  const validCategory = CATEGORIES.some((c) => c.slug && c.slug === category) ? category : undefined;
+  const pageUrl = `${BASE_URL}/spots/${prefecture}/${city}`;
+
   return {
-    title: `${cityDef.name}の犬連れOKスポット一覧`,
-    description: `${pref.name}${cityDef.name}の犬連れOKなドッグラン・動物病院・ペットホテル・飲食店・ペット用品店をまとめて紹介`,
+    title,
+    description,
+    alternates: {
+      canonical: validCategory ? `${pageUrl}?category=${validCategory}` : pageUrl,
+    },
+    openGraph: {
+      title,
+      description,
+      url: pageUrl,
+      siteName: "イヌとサンイン",
+      locale: "ja_JP",
+      type: "website",
+      // openGraphは親(layout.tsx)の値を丸ごと置き換えるため、共通画像もここで指定する
+      images: [{ url: "/images/hero.png", width: 1200, height: 630, alt: "イヌとサンイン" }],
+    },
   };
 }
 
@@ -234,7 +256,7 @@ export default async function CitySpotsPage({
                   const badgeColor = CATEGORY_COLORS[spot.category] ?? { bg: "#E2E2E2", text: "#444" };
                   return (
                     <li key={spot.id}>
-                      <Link href={`/spots/${spot.id}`} className="flex flex-col bg-white rounded-2xl overflow-hidden border border-accent/10 hover:shadow-lg transition-all duration-200 h-full">
+                      <Link href={`/spots/${spot.slug}`} className="flex flex-col bg-white rounded-2xl overflow-hidden border border-accent/10 hover:shadow-lg transition-all duration-200 h-full">
 
                         {/* 画像エリア */}
                         <div className="relative aspect-video bg-[#E2EEE8] flex items-center justify-center overflow-hidden">
