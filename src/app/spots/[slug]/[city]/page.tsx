@@ -1,5 +1,6 @@
 // このslugは都道府県slug（tottori/shimane）を表す。スポット詳細ページのslugとは意味が異なる
 import type { Metadata } from "next";
+import { cache } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -62,6 +63,96 @@ type Spot = {
   stay_tags: string[] | null;
 };
 
+// 市町村のスポットを取得する。generateMetadataとページ本体で同じ取得を使うため、cacheで重複クエリを避ける
+const getCitySpots = cache(async (cityName: string): Promise<Spot[]> => {
+  const { data, error } = await supabase
+    .from("spots")
+    .select("*")
+    .eq("is_active", true)
+    .eq("listing_status", "published")
+    .ilike("address", `%${cityName}%`)
+    .order("created_at", { ascending: false });
+
+  if (error) console.error("[Supabase] spots fetch error:", error);
+  return (data ?? []) as Spot[];
+});
+
+// 内訳・FAQに使うカテゴリの並び順
+const SUMMARY_CATEGORIES = ["dogrun", "vet", "hotel", "restaurant", "shop", "adoption"] as const;
+
+type Faq = { q: string; a: string };
+
+// DBにある事実（件数・スポット名・同伴条件の記載・宿泊タグ）だけから、市町村ごとの説明文とFAQを組み立てる。
+// 推測や体験談は入れない。件数が0のカテゴリは触れない。
+function buildCitySummary(prefName: string, cityName: string, spots: Spot[]) {
+  const byCat: Record<string, Spot[]> = {};
+  for (const sp of spots) (byCat[sp.category] ??= []).push(sp);
+  const count = (c: string) => byCat[c]?.length ?? 0;
+
+  const breakdown = SUMMARY_CATEGORIES
+    .filter((c) => count(c) > 0)
+    .map((c) => `${CATEGORY_LABELS[c]}${count(c)}件`)
+    .join("・");
+
+  const description = spots.length > 0
+    ? `${prefName}${cityName}の犬連れOKスポットを${spots.length}件掲載（${breakdown}）。同伴できる席や条件、営業時間、電話番号をまとめて確認できます。`
+    : `${prefName}${cityName}の犬連れOKなドッグラン・動物病院・ペットホテル・飲食店・ペット用品店をまとめて紹介`;
+
+  const intro = spots.length > 0
+    ? `${prefName}${cityName}には現在${spots.length}件の犬連れOKスポットを掲載中です（${breakdown}）。同伴できる席や条件も、各スポットのページでまとめて確認できます。`
+    : "";
+
+  const names = (list: Spot[], n: number) => list.slice(0, n).map((x) => `「${x.name}」`).join("");
+
+  const faqs: Faq[] = [];
+
+  const restaurants = byCat["restaurant"] ?? [];
+  if (restaurants.length > 0) {
+    const terrace = restaurants.filter((r) => r.pet_condition && r.pet_condition.includes("テラス")).length;
+    let a = `${cityName}には、犬と一緒に利用できる飲食店を${restaurants.length}件掲載しています。`;
+    if (terrace > 0) a += `そのうち${terrace}件は、同伴条件に「テラス」の記載があります（テラス席のみ同伴可など）。`;
+    a += `店内に入れるかどうかはお店ごとに異なるため、各スポットの「ペット同伴条件」をご確認ください。`;
+    faqs.push({ q: `${cityName}で犬と一緒に入れる飲食店はありますか？`, a });
+  }
+
+  const dogruns = byCat["dogrun"] ?? [];
+  if (dogruns.length > 0) {
+    faqs.push({
+      q: `${cityName}にドッグランはありますか？`,
+      a: `${cityName}のドッグランとして、${names(dogruns, 5)}${dogruns.length > 5 ? "など" : ""}を含む${dogruns.length}件を掲載しています。利用条件（登録・ワクチン接種の証明・料金など）は施設ごとに異なります。`,
+    });
+  }
+
+  const hotels = byCat["hotel"] ?? [];
+  if (hotels.length > 0) {
+    const stay = hotels.filter((h) => h.stay_tags?.includes("stay")).length;
+    const boarding = hotels.filter((h) => h.stay_tags?.includes("boarding")).length;
+    let a = `${cityName}のペットホテル・宿泊施設として${hotels.length}件を掲載しています。`;
+    if (stay > 0) a += `犬と一緒に泊まれる宿として登録しているのは${stay}件、`;
+    if (boarding > 0) a += `${stay > 0 ? "" : "そのうち"}犬を預けられる施設として登録しているのは${boarding}件です。`;
+    else if (stay > 0) a = a.replace(/、$/, "です。");
+    a += `受け入れ条件や料金は施設ごとに異なるため、ご利用前に確認してください。`;
+    faqs.push({ q: `${cityName}で犬と泊まれる宿や、犬を預けられるペットホテルはありますか？`, a });
+  }
+
+  const vets = byCat["vet"] ?? [];
+  if (vets.length > 0) {
+    faqs.push({
+      q: `${cityName}の動物病院を探せますか？`,
+      a: `${cityName}の動物病院を${vets.length}件掲載しています。診療時間・診療する動物・予約の要否は病院ごとに異なるため、受診前に電話などでご確認ください。`,
+    });
+  }
+
+  if (spots.length > 0) {
+    faqs.push({
+      q: "お出かけ前に確認しておくことは？",
+      a: "同伴できる席や時間帯、予約の要否、ワクチン接種証明書の提示などの条件は、お店や施設によって異なり、変更されることもあります。おでかけ前に、各スポットのページにある電話番号や公式サイトで、最新の情報をご確認ください。",
+    });
+  }
+
+  return { description, intro, faqs };
+}
+
 type PageParams = { slug: string; city: string };
 
 type NearbyCityStats = {
@@ -114,7 +205,8 @@ export async function generateMetadata({
   const { prefecture: pref, city: cityDef } = area;
 
   const title = `${cityDef.name}の犬連れOKスポット一覧`;
-  const description = `${pref.name}${cityDef.name}の犬連れOKなドッグラン・動物病院・ペットホテル・飲食店・ペット用品店をまとめて紹介`;
+  const citySpots = await getCitySpots(cityDef.name);
+  const description = buildCitySummary(pref.name, cityDef.name, citySpots).description;
   const { category } = await searchParams;
   const validCategory = CATEGORIES.some((c) => c.slug && c.slug === category) ? category : undefined;
   const pageUrl = `${BASE_URL}/spots/${prefecture}/${city}`;
@@ -153,17 +245,8 @@ export default async function CitySpotsPage({
   const { category } = await searchParams;
   const activeCategory = category ?? "";
 
-  const { data: spots, error } = await supabase
-    .from("spots")
-    .select("*")
-    .eq("is_active", true)
-    .eq("listing_status", "published")
-    .ilike("address", `%${cityDef.name}%`)
-    .order("created_at", { ascending: false });
-
-  if (error) console.error("[Supabase] spots fetch error:", error);
-
-  const allSpots: Spot[] = spots ?? [];
+  const allSpots: Spot[] = await getCitySpots(cityDef.name);
+  const summary = buildCitySummary(pref.name, cityDef.name, allSpots);
   const spotList = activeCategory
     ? allSpots.filter((s) => s.category === activeCategory)
     : allSpots;
@@ -209,7 +292,8 @@ export default async function CitySpotsPage({
               {cityDef.name}の犬連れOKスポット一覧
             </h1>
             <p className="text-sm text-subtext mt-2">
-              {pref.name}{cityDef.name}には現在{allSpots.length}件の犬連れOKスポットを掲載中。ドッグラン・動物病院・ペットホテル・飲食店・ペット用品店をまとめて探せます。
+              {summary.intro ||
+                `${pref.name}${cityDef.name}の犬連れOKなドッグラン・動物病院・ペットホテル・飲食店・ペット用品店をまとめて探せます。`}
             </p>
           </div>
         </section>
@@ -328,6 +412,25 @@ export default async function CitySpotsPage({
             )}
           </div>
         </section>
+
+        {/* よくある質問（DBの事実から自動で組み立てる。絞り込み表示のときは重複を避けて出さない） */}
+        {!activeCategory && summary.faqs.length > 0 && (
+          <section className="px-4 sm:px-6 py-10 border-t border-foreground/10">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="font-heading text-lg font-bold text-foreground mb-5">
+                {cityDef.name}で犬と出かける前に：よくある質問
+              </h2>
+              <dl className="flex flex-col gap-5">
+                {summary.faqs.map((f) => (
+                  <div key={f.q}>
+                    <dt className="text-sm font-bold text-foreground">{f.q}</dt>
+                    <dd className="text-sm text-subtext leading-relaxed mt-1">{f.a}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </section>
+        )}
 
         {/* 近隣の市町村もチェック */}
         {nearbyCitiesWithStats.length > 0 && (
