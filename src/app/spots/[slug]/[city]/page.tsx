@@ -153,6 +153,29 @@ function buildCitySummary(prefName: string, cityName: string, spots: Spot[]) {
   return { description, intro, faqs };
 }
 
+// カテゴリで絞り込んだ表示（?category=...）用の、見出し・説明文・導入文。
+// DBにある事実（件数・スポット名・同伴条件の記載）だけから組み立てる。該当スポットが0件ならnull。
+function buildCategorySummary(prefName: string, cityName: string, category: string, spots: Spot[]) {
+  const label = CATEGORY_LABELS[category];
+  const list = spots.filter((sp) => sp.category === category);
+  if (!label || list.length === 0) return null;
+
+  const heading = `${cityName}の${label}一覧`;
+  // 説明文が長くなりすぎないよう、短い名前のスポットだけを最大3件まで載せる
+  const shortNames = list.map((sp) => sp.name).filter((n) => n.length <= 16).slice(0, 3);
+  const nameText = shortNames.length > 0 ? `（${shortNames.join("・")}${list.length > shortNames.length ? "など" : ""}）` : "";
+
+  let extra = "";
+  if (category === "restaurant") {
+    const terrace = list.filter((r) => r.pet_condition && r.pet_condition.includes("テラス")).length;
+    if (terrace > 0) extra = `うち${terrace}件は、同伴条件に「テラス」の記載があります。`;
+  }
+
+  const description = `${prefName}${cityName}の${label}を${list.length}件掲載${nameText}。${extra}営業時間・電話番号・同伴条件などをまとめて確認できます。`;
+  const intro = `${prefName}${cityName}の${label}を${list.length}件掲載しています${nameText}。${extra}条件や営業時間は施設ごとに異なるため、各スポットのページでご確認ください。`;
+  return { heading, description, intro };
+}
+
 type PageParams = { slug: string; city: string };
 
 type NearbyCityStats = {
@@ -204,16 +227,19 @@ export async function generateMetadata({
 
   const { prefecture: pref, city: cityDef } = area;
 
-  const title = `${cityDef.name}の犬連れOKスポット一覧`;
   const citySpots = await getCitySpots(cityDef.name);
-  const description = buildCitySummary(pref.name, cityDef.name, citySpots).description;
   const { category } = await searchParams;
   const validCategory = CATEGORIES.some((c) => c.slug && c.slug === category) ? category : undefined;
+  const catSummary = validCategory ? buildCategorySummary(pref.name, cityDef.name, validCategory, citySpots) : null;
+  const title = catSummary?.heading ?? `${cityDef.name}の犬連れOKスポット一覧`;
+  const description = catSummary?.description ?? buildCitySummary(pref.name, cityDef.name, citySpots).description;
   const pageUrl = `${BASE_URL}/spots/${prefecture}/${city}`;
 
   return {
     title,
     description,
+    // 該当スポットが0件のカテゴリ絞り込みページは、検索結果に出さない（中身のないページの登録を避ける）
+    ...(validCategory && !catSummary ? { robots: { index: false, follow: true } } : {}),
     alternates: {
       canonical: validCategory ? `${pageUrl}?category=${validCategory}` : pageUrl,
     },
@@ -247,6 +273,7 @@ export default async function CitySpotsPage({
 
   const allSpots: Spot[] = await getCitySpots(cityDef.name);
   const summary = buildCitySummary(pref.name, cityDef.name, allSpots);
+  const catSummary = activeCategory ? buildCategorySummary(pref.name, cityDef.name, activeCategory, allSpots) : null;
   const spotList = activeCategory
     ? allSpots.filter((s) => s.category === activeCategory)
     : allSpots;
@@ -289,10 +316,11 @@ export default async function CitySpotsPage({
           <div className="max-w-5xl mx-auto">
             <p className="text-xs font-en font-semibold text-accent tracking-widest mb-2">SPOTS</p>
             <h1 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">
-              {cityDef.name}の犬連れOKスポット一覧
+              {catSummary?.heading ?? `${cityDef.name}の犬連れOKスポット一覧`}
             </h1>
             <p className="text-sm text-subtext mt-2">
-              {summary.intro ||
+              {catSummary?.intro ||
+                summary.intro ||
                 `${pref.name}${cityDef.name}の犬連れOKなドッグラン・動物病院・ペットホテル・飲食店・ペット用品店をまとめて探せます。`}
             </p>
           </div>
