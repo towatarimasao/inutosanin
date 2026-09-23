@@ -1,10 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    // クリティカルCSSをインライン化し、レンダリングブロックを軽減
-    optimizeCss: true,
-  },
   images: {
     deviceSizes: [400, 800, 1200],
     imageSizes: [64, 128, 256],
