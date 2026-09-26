@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { isRateLimited } from "@/lib/spam-guard";
 
 const NOTIFY_TO   = "info@greatbrain475.com";
 const NOTIFY_FROM = "イヌとサンイン <notify@greatbrain475.com>";
@@ -51,6 +52,20 @@ export async function POST(req: NextRequest) {
 
   if (!email || !isValidEmail(email)) {
     return NextResponse.json({ error: "有効なメールアドレスが必要です" }, { status: 400 });
+  }
+
+  if (
+    name.length > 200 || address.length > 300 || email.length > 254 ||
+    (nickname?.length ?? 0) > 50 || (phone?.length ?? 0) > 50
+  ) {
+    return NextResponse.json({ error: "入力が長すぎます" }, { status: 400 });
+  }
+
+  if (await isRateLimited("feedback_submissions", "contact_email", email)) {
+    return NextResponse.json(
+      { error: "短時間に送信が集中しています。しばらくしてからお試しください" },
+      { status: 429 }
+    );
   }
 
   const thankToken = crypto.randomUUID();

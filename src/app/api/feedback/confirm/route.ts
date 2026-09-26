@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { MAX_SPOT_IDS, clip, isRateLimited, isUuid } from "@/lib/spam-guard";
 
 const NOTIFY_TO   = "info@greatbrain475.com";
 const NOTIFY_FROM = "イヌとサンイン <notify@greatbrain475.com>";
@@ -30,8 +31,8 @@ async function fetchSpotNames(spotIds: string[]): Promise<Record<string, string>
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { spotIds, email, nickname, consentPublic, honeypot } = body as {
-    spotIds: string[];
+  const { spotIds: rawSpotIds, email: rawEmail, nickname: rawNickname, consentPublic, honeypot } = body as {
+    spotIds: unknown[];
     email: string;
     nickname: string;
     consentPublic: boolean;
@@ -43,12 +44,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, count: 0 });
   }
 
+  const email    = clip(rawEmail, 254);
+  const nickname = clip(rawNickname, 50);
+
   if (!email || !isValidEmail(email)) {
     return NextResponse.json({ error: "有効なメールアドレスが必要です" }, { status: 400 });
   }
 
-  if (!Array.isArray(spotIds) || spotIds.length === 0) {
+  if (!Array.isArray(rawSpotIds) || rawSpotIds.length === 0) {
     return NextResponse.json({ error: "spotIds が空です" }, { status: 400 });
+  }
+
+  // スパム対策：UUID形式のみ・重複除去・件数上限
+  const spotIds = Array.from(new Set(rawSpotIds.filter(isUuid)));
+  if (spotIds.length === 0) {
+    return NextResponse.json({ error: "spotIds が不正です" }, { status: 400 });
+  }
+  if (spotIds.length > MAX_SPOT_IDS) {
+    return NextResponse.json(
+      { error: `一度に送信できるスポットは${MAX_SPOT_IDS}件までです` },
+      { status: 400 }
+    );
+  }
+
+  // スパム対策：同一メールアドレスからの短時間の連続投稿を制限
+  if (await isRateLimited("feedback_submissions", "contact_email", email)) {
+    return NextResponse.json(
+      { error: "短時間に送信が集中しています。しばらくしてからお試しください" },
+      { status: 429 }
+    );
   }
 
   // バッチ全体で共通の thank_token を生成
