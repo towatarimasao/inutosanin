@@ -293,7 +293,7 @@ export default async function CitySpotsPage({
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "ホーム", item: BASE_URL },
-      { "@type": "ListItem", position: 2, name: pref.name, item: `${BASE_URL}/spots?prefecture=${prefecture}` },
+      { "@type": "ListItem", position: 2, name: pref.name, item: `${BASE_URL}/spots/${prefecture}` },
       { "@type": "ListItem", position: 3, name: cityDef.name, item: pageUrl },
     ],
   };

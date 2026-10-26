@@ -9,6 +9,7 @@ import Footer from "@/app/_components/Footer";
 import { supabase } from "@/lib/supabase";
 import { findAreaByAddress } from "@/lib/areas";
 import ReportButton from "./ReportButton";
+import PrefectureSpots, { findPrefecture, prefectureMetadata } from "./PrefectureSpots";
 
 const BASE_URL = "https://www.inutosanin.jp";
 
@@ -184,6 +185,10 @@ export async function generateMetadata(
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const { slug } = await params;
+  // /spots/tottori・/spots/shimane は都道府県ページ（スポット詳細より先に判定する）
+  const pref = findPrefecture(slug);
+  if (pref) return prefectureMetadata(pref);
+
   const resolved = await resolveSpot(slug);
 
   if (resolved.kind === "not_found") return { title: "スポット詳細" };
@@ -229,6 +234,9 @@ export default async function SpotDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const pref = findPrefecture(slug);
+  if (pref) return <PrefectureSpots pref={pref} />;
+
   const resolved = await resolveSpot(slug);
 
   if (resolved.kind === "not_found") notFound();
