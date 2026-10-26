@@ -9,6 +9,11 @@ const zenKaku = Zen_Kaku_Gothic_New({
   subsets: ["latin"],
   variable: "--font-zen",
   display: "swap",
+  // 日本語フォントは unicode-range で百数十ファイルに分割されるため、
+  // preload すると全分割ファイル（約200本・約3MB）が<head>で先読みされ、
+  // モバイルでCSS・LCP画像の読み込みを大きく遅らせていた（2026-10-26 PageSpeedで確認）。
+  // preloadを止めると、ページで実際に使う文字の分割ファイルだけが読み込まれる。
+  preload: false,
 });
 
 const notoSans = Noto_Sans_JP({
@@ -16,6 +21,7 @@ const notoSans = Noto_Sans_JP({
   subsets: ["latin"],
   variable: "--font-noto",
   display: "swap",
+  preload: false, // 理由は上の zenKaku と同じ
 });
 
 const figtree = Figtree({
