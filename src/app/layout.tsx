@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Zen_Kaku_Gothic_New, Noto_Sans_JP, Figtree } from "next/font/google";
+import { Zen_Kaku_Gothic_New, Figtree } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
@@ -18,13 +18,8 @@ const zenKaku = Zen_Kaku_Gothic_New({
   preload: false,
 });
 
-const notoSans = Noto_Sans_JP({
-  weight: ["400", "500", "700"],
-  subsets: ["latin"],
-  variable: "--font-noto",
-  display: "swap",
-  preload: false, // 理由は上の zenKaku と同じ
-});
+// 本文はWebフォント（Noto Sans JP）をやめ、端末標準の日本語フォントを使う（globals.css の --font-system）。
+// Noto Sans JPは約1.3MBのフォントと約360件の@font-faceで、表示開始を遅らせていた（2026-10-26）。
 
 const figtree = Figtree({
   subsets: ["latin"],
@@ -95,7 +90,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={`${zenKaku.variable} ${notoSans.variable} ${figtree.variable} h-full antialiased`}>
+    <html lang="ja" className={`${zenKaku.variable} ${figtree.variable} h-full antialiased`}>
       <head>
         <script
           type="application/ld+json"
