@@ -5,7 +5,9 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 
 const zenKaku = Zen_Kaku_Gothic_New({
-  weight: ["400", "500", "700"],
+  // 見出し用。500はサイト内で未使用（font-semibold=600は700で描画される）ため外した。
+  // 1ウェイトごとに@font-face約120件がレンダリングをブロックするCSSに入るため、使うものだけに絞る。
+  weight: ["400", "700"],
   subsets: ["latin"],
   variable: "--font-zen",
   display: "swap",
