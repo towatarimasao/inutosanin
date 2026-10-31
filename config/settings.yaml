@@ -38,3 +38,7 @@ note:
     eyecatch_file_input: "#note-editor-eyecatch-input"
     eyecatch_crop_save_button: "div.ReactModal__Overlay button:has-text('保存')"
   storage_state_path: "logs/note_session.json"
+  # 記事末尾（ハッシュタグの前）に必ず入れるサイト誘導文とURL（2026/10/29〜全記事で必須）
+  site_link:
+    lead: "山陰で愛犬と暮らす方に向けた、お出かけスポットや暮らしの情報は「イヌとサンイン」のウェブサイトにもまとめています。ぜひのぞいてみてください。"
+    url: "https://www.inutosanin.jp/"

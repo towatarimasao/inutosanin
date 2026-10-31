@@ -64,16 +64,80 @@ class NotePostingError(Exception):
     """note操作に失敗した場合の例外"""
 
 
-def _build_body_with_hashtags(article: GeneratedArticle) -> str:
-    """本文末尾にハッシュタグ候補をテキストとして追記する
+def _build_body_with_hashtags(article: GeneratedArticle, site_link: "dict | None" = None) -> str:
+    """本文末尾に「サイト誘導文＋URL」とハッシュタグ候補をテキストとして追記する
+
+    並び順は「本文 → サイト誘導文＋URL → ハッシュタグ候補」で固定。
+    （2026/10/29 トワさん指示：全記事で、ハッシュタグの前にサイトURLとリード文を入れる）
 
     noteの下書き保存ではハッシュタグ欄への自動入力が永続化されないため、
     人手で公開する際にコピーして使えるよう本文末尾に候補を残す。
     """
-    if not article['tags']:
-        return article['body']
-    hashtag_line = " ".join(f"#{tag}" for tag in article['tags'])
-    return f"{article['body']}\n\n---\n【ハッシュタグ候補（公開時に手動で設定してください）】\n{hashtag_line}"
+    parts = [article['body'].rstrip()]
+
+    if site_link and site_link.get("url"):
+        lead = (site_link.get("lead") or "").strip()
+        block = f"{lead}\n{site_link['url']}" if lead else site_link['url']
+        parts.append(block)
+
+    if article['tags']:
+        hashtag_line = " ".join(f"#{tag}" for tag in article['tags'])
+        parts.append(f"---\n【ハッシュタグ候補（公開時に手動で設定してください）】\n{hashtag_line}")
+
+    return "\n\n".join(parts)
+
+
+def _wait_for_link_card(page, editor_selector: str, url: str, timeout_ms: int = 20000) -> None:
+    """URLがnoteのリンクカード（埋め込み）に変換され、表示されるまで待つ
+
+    待っても変換されない場合は警告ログを出して先へ進む（下書き保存自体は止めない）。
+    """
+    domain = url.split("//")[-1].split("/")[0]
+    script = """([sel, domain]) => {
+        const ed = document.querySelector(sel);
+        if (!ed) return false;
+        for (const el of ed.querySelectorAll('figure, iframe, [data-src], [embedded-service]')) {
+            if (el.outerHTML.includes(domain)) return true;
+        }
+        return false;
+    }"""
+    try:
+        page.wait_for_function(script, arg=[editor_selector, domain], timeout=timeout_ms)
+        page.wait_for_timeout(3000)  # カード内の画像・タイトル読み込み待ち
+        logger.info("サイト誘導のリンクカード表示を確認しました")
+    except Exception:  # noqa: BLE001
+        logger.warning("サイト誘導URLがリンクカードに変換されませんでした（下書きは保存を続行）")
+
+
+def _dismiss_modals(page, max_rounds: int = 3) -> None:
+    """note.comのお祝い・お知らせ等のモーダルがあれば閉じる
+
+    2026/09/28以降、「スキ○回おめでとう」等のモーダルがトップに出て
+    「投稿」リンクのクリックを塞ぎ、タイムアウトする事象が断続的に発生した。
+    """
+    modal = page.locator("div[data-name='modal']")
+    for _ in range(max_rounds):
+        if modal.count() == 0:
+            return
+        logger.info("noteのモーダルを検出したため閉じます")
+        page.keyboard.press("Escape")
+        page.wait_for_timeout(800)
+        if modal.count() == 0:
+            return
+        for sel in ("[data-name='modal'] button[aria-label*='閉じる']",
+                    "[data-name='modal'] button[aria-label*='close' i]",
+                    "[data-name='modal'] button"):
+            btn = page.locator(sel)
+            if btn.count() > 0:
+                try:
+                    btn.first.click(timeout=3000)
+                    break
+                except Exception:  # noqa: BLE001
+                    continue
+        page.wait_for_timeout(800)
+    if modal.count() > 0:
+        # 最後の手段：DOMから取り除く
+        page.evaluate("document.querySelectorAll(\"div[data-name='modal']\").forEach(e => e.remove())")
 
 
 def save_draft(article: GeneratedArticle, note_config: dict) -> None:
@@ -107,6 +171,8 @@ def save_draft(article: GeneratedArticle, note_config: dict) -> None:
                     "`python scripts/note_manual_login.py` で再ログインしてください。"
                 )
 
+            _dismiss_modals(page)
+
             # editor.note.com へ直接遷移するとCORSエラーで止まるため、
             # トップページの「投稿」リンクを実際にクリックして遷移する
             with page.expect_navigation(timeout=30000):
@@ -116,9 +182,25 @@ def save_draft(article: GeneratedArticle, note_config: dict) -> None:
             page.fill(selectors["title_input"], article['title'])
             page.click(selectors["body_editor"])
 
-            body_text = _build_body_with_hashtags(article)
-            page.keyboard.type(body_text)
-            page.wait_for_timeout(1000)
+            site_link = note_config.get("site_link")
+            body_text = _build_body_with_hashtags(article, site_link)
+
+            if site_link and site_link.get("url") and article['tags']:
+                # 2026/10/31：URLを入れた直後に続けて入力・保存すると、noteがURLを
+                # リンクカードに変換している途中で保存され、カード部分が空白になる
+                # 事象が発生した。そのため「本文＋誘導文＋URL」まで入力したら
+                # カードが表示されるのを待ってから、ハッシュタグ候補を入力する。
+                tag_block = _build_body_with_hashtags({**article, 'body': ''}, None).strip()
+                head_text = body_text[: len(body_text) - len(tag_block)].rstrip()
+                page.keyboard.type(head_text)
+                page.keyboard.press("Enter")
+                _wait_for_link_card(page, selectors["body_editor"], site_link["url"])
+                page.keyboard.type(tag_block)
+            else:
+                page.keyboard.type(body_text)
+                if site_link and site_link.get("url"):
+                    _wait_for_link_card(page, selectors["body_editor"], site_link["url"])
+            page.wait_for_timeout(2000)
 
             # 本文が実際にエディタへ反映されたかを、保存前に検証する。
             # 生成された本文（article['body']）自体は正常でも、エディタの
