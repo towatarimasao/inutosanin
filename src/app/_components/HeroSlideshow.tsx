@@ -5,15 +5,19 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const heroImages = [
-  "/images/hero1.png",
-  "/images/hero2.png",
-  "/images/hero3.png",
-  "/images/hero4.png",
-  "/images/hero5.png",
+  "/images/hero1.webp",
+  "/images/hero2.webp",
+  "/images/hero3.webp",
+  "/images/hero4.webp",
+  "/images/hero5.webp",
 ];
 
 export default function HeroSlideshow() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  // 初期表示は1枚目のみマウントし、LCP候補（priority画像）との帯域競合を避ける。
+  // opacityで隠しているだけだと"画面内"扱いのままで全画像が先読みされてしまうため、
+  // 実際にDOMへ存在させる枚数を段階的に増やす。
+  const [mountedCount, setMountedCount] = useState(1);
 
   useEffect(() => {
     if (heroImages.length <= 1) return;
@@ -23,6 +27,15 @@ export default function HeroSlideshow() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (mountedCount >= heroImages.length) return;
+    // 切り替え間隔(5秒)より十分短い間隔でマウントし、表示前に読み込みを完了させる
+    const timer = setTimeout(() => {
+      setMountedCount((c) => Math.min(c + 1, heroImages.length));
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [mountedCount]);
+
   return (
     <section
       className="relative w-full max-w-[calc(100%-48px)] aspect-[3/4] sm:aspect-[16/9] max-h-[650px] mx-auto flex items-center justify-center text-center px-4 sm:px-6 bg-[#FAF6F1]"
@@ -31,18 +44,22 @@ export default function HeroSlideshow() {
       {/* 画像をsection内に収めるクリップラッパー */}
       <div className="absolute inset-0 overflow-hidden">
         {/* スライドショー背景 */}
-        {heroImages.map((src, i) => (
-          <Image
-            key={src}
-            src={src}
-            alt="山陰の海辺のドッグランで犬たちが遊ぶイラスト"
-            fill
-            className={`object-cover transition-opacity duration-1000 ${
-              i === currentIndex ? "opacity-100" : "opacity-0"
-            }`}
-            priority={i === 0}
-          />
-        ))}
+        {heroImages.map((src, i) =>
+          i < mountedCount ? (
+            <Image
+              key={src}
+              src={src}
+              alt="山陰の海辺のドッグランで犬たちが遊ぶイラスト"
+              fill
+              sizes="100vw"
+              className={`object-cover transition-opacity duration-1000 ${
+                i === currentIndex ? "opacity-100" : "opacity-0"
+              }`}
+              priority={i === 0}
+              loading={i === 0 ? undefined : "lazy"}
+            />
+          ) : null
+        )}
 
         {/* 温かみのある暗めオーバーレイ */}
         <div className="absolute inset-0 bg-[#2A2521]/55" aria-hidden="true" />

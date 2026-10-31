@@ -51,6 +51,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
+  const prefecturePages: MetadataRoute.Sitemap = AREAS.map((pref) => ({
+    url: `${BASE_URL}/spots/${pref.slug}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
+
   const cityPages: MetadataRoute.Sitemap = AREAS.flatMap((pref) =>
     pref.cities.map((city) => ({
       url: `${BASE_URL}/spots/${pref.slug}/${city.slug}`,
@@ -88,5 +94,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...fixedPages, ...categoryPages, ...cityPages, ...spotPages, ...wankoGoodsPages];
+  return [...fixedPages, ...categoryPages, ...prefecturePages, ...cityPages, ...spotPages, ...wankoGoodsPages];
 }

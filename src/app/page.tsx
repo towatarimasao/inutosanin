@@ -348,7 +348,9 @@ export default async function Home() {
             <div className="grid sm:grid-cols-2 gap-8">
               {AREAS.map((pref) => (
                 <div key={pref.slug}>
-                  <p className="font-heading font-bold text-foreground mb-3">{pref.name}</p>
+                  <Link href={`/spots/${pref.slug}`} className="inline-block font-heading font-bold text-foreground hover:text-accent mb-3">
+                    {pref.name}の犬連れOKスポット →
+                  </Link>
                   <div className="flex flex-wrap gap-2">
                     {pref.cities.map((city) => (
                       <Link

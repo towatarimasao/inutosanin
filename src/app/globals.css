@@ -7,6 +7,8 @@
   --accent-2: #3A6E58;
   --surface: #FCFAF5;
   --subtext: #6B6A64;
+  /* 本文用：端末標準の日本語フォント（iPhone/Mac=ヒラギノ、Android=Noto Sans CJK、Windows=游ゴシック/メイリオ） */
+  --font-system: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Noto Sans CJK JP", "Yu Gothic UI", "Yu Gothic", Meiryo, system-ui, sans-serif;
 }
 
 @theme inline {
@@ -18,14 +20,14 @@
   --color-page: #F7F1E7;
   --color-subtext: var(--subtext);
   --font-heading: var(--font-zen);
-  --font-body: var(--font-noto);
+  --font-body: var(--font-system);
   --font-en: var(--font-figtree);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-noto), var(--font-zen), sans-serif;
+  font-family: var(--font-system);
 }
 
 /* キーボード操作時のフォーカスをサイトカラーで統一表示 */

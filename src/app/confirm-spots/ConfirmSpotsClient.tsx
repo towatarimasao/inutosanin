@@ -38,21 +38,8 @@ export default function ConfirmSpotsClient({ spots }: { spots: PendingSpot[] }) 
   function toggleCheck(id: string) {
     setChecked((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }
-
-  function toggleAll() {
-    const filteredIds = filtered.map((s) => s.id);
-    const allChecked = filteredIds.every((id) => checked.has(id));
-    setChecked((prev) => {
-      const next = new Set(prev);
-      if (allChecked) {
-        filteredIds.forEach((id) => next.delete(id));
-      } else {
-        filteredIds.forEach((id) => next.add(id));
-      }
+      if (next.has(id)) next.delete(id);
+      else if (next.size < 20) next.add(id);
       return next;
     });
   }
@@ -94,7 +81,6 @@ export default function ConfirmSpotsClient({ spots }: { spots: PendingSpot[] }) 
   }
 
   const filteredCheckedCount = filtered.filter((s) => checked.has(s.id)).length;
-  const allFilteredChecked   = filtered.length > 0 && filtered.every((s) => checked.has(s.id));
 
   if (status === "done") {
     return (
@@ -173,14 +159,6 @@ export default function ConfirmSpotsClient({ spots }: { spots: PendingSpot[] }) 
           <p className="text-xs" style={{ color: "#9E9990" }}>
             {filtered.length} 件表示 ／ {filteredCheckedCount} 件チェック済み
           </p>
-          <button
-            type="button"
-            onClick={toggleAll}
-            className="text-xs px-3 py-1 rounded border transition-all"
-            style={{ borderColor: "#C8BFB5", color: "#6B6460" }}
-          >
-            {allFilteredChecked ? "表示中の選択を解除" : "表示中を全て選択"}
-          </button>
         </div>
 
         {/* スポット一覧 */}

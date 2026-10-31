@@ -1,21 +1,25 @@
 import type { Metadata } from "next";
-import { Zen_Kaku_Gothic_New, Noto_Sans_JP, Figtree } from "next/font/google";
+import { Zen_Kaku_Gothic_New, Figtree } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 
 const zenKaku = Zen_Kaku_Gothic_New({
-  weight: ["400", "500", "700"],
+  // 見出し用。500はサイト内で未使用（font-semibold=600は700で描画される）ため外した。
+  // 1ウェイトごとに@font-face約120件がレンダリングをブロックするCSSに入るため、使うものだけに絞る。
+  weight: ["400", "700"],
   subsets: ["latin"],
   variable: "--font-zen",
   display: "swap",
+  // 日本語フォントは unicode-range で百数十ファイルに分割されるため、
+  // preload すると全分割ファイル（約200本・約3MB）が<head>で先読みされ、
+  // モバイルでCSS・LCP画像の読み込みを大きく遅らせていた（2026-10-26 PageSpeedで確認）。
+  // preloadを止めると、ページで実際に使う文字の分割ファイルだけが読み込まれる。
+  preload: false,
 });
 
-const notoSans = Noto_Sans_JP({
-  weight: ["400", "500", "700"],
-  subsets: ["latin"],
-  variable: "--font-noto",
-  display: "swap",
-});
+// 本文はWebフォント（Noto Sans JP）をやめ、端末標準の日本語フォントを使う（globals.css の --font-system）。
+// Noto Sans JPは約1.3MBのフォントと約360件の@font-faceで、表示開始を遅らせていた（2026-10-26）。
 
 const figtree = Figtree({
   subsets: ["latin"],
@@ -86,7 +90,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={`${zenKaku.variable} ${notoSans.variable} ${figtree.variable} h-full antialiased`}>
+    <html lang="ja" className={`${zenKaku.variable} ${figtree.variable} h-full antialiased`}>
       <head>
         <script
           type="application/ld+json"
@@ -96,6 +100,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-[#FAF6F1] text-foreground font-body">
         {children}
         <Analytics />
+        <GoogleAnalytics gaId="G-ZXNTDKL625" />
       </body>
     </html>
   );

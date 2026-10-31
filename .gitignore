@@ -9,3 +9,7 @@ logs/**/*.png
 .DS_Store
 logs/images/
 FETCH_HEAD
+
+# 環境変数・鍵（誤ってGitHubに上げないため）
+.env*
+env*.txt
