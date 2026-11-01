@@ -55,7 +55,8 @@ export default function HeroSlideshow() {
               className={`object-cover transition-opacity duration-1000 ${
                 i === currentIndex ? "opacity-100" : "opacity-0"
               }`}
-              priority={i === 0}
+              preload={i === 0}
+              fetchPriority={i === 0 ? "high" : "auto"}
               loading={i === 0 ? undefined : "lazy"}
             />
           ) : null
@@ -85,7 +86,7 @@ export default function HeroSlideshow() {
         <Link
           href="/spots"
           aria-label="山陰のペットスポットを探す"
-          className="inline-block bg-accent hover:bg-[#b8581a] text-white font-semibold px-6 py-3 sm:px-10 sm:py-3.5 rounded-full shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5"
+          className="inline-block bg-accent hover:bg-[#8C4415] text-white font-semibold px-6 py-3 sm:px-10 sm:py-3.5 rounded-full shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5"
         >
           スポットを探す
         </Link>

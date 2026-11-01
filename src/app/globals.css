@@ -3,7 +3,7 @@
 :root {
   --background: #F7F1E7;
   --foreground: #2A2521;
-  --accent: #D2691E;
+  --accent: #A8521A;
   --accent-2: #3A6E58;
   --surface: #FCFAF5;
   --subtext: #6B6A64;
@@ -33,7 +33,7 @@ body {
 /* キーボード操作時のフォーカスをサイトカラーで統一表示 */
 a:focus-visible,
 button:focus-visible {
-  outline: 2px solid #D2691E;
+  outline: 2px solid #A8521A;
   outline-offset: 2px;
   border-radius: 4px;
 }

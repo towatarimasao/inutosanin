@@ -111,8 +111,8 @@ function StarRating({ rating }: { rating: number }) {
   return (
     <span className="flex items-center gap-0.5" aria-label={`評価${rating}`}>
       {Array.from({ length: 5 }, (_, i) => {
-        if (i < full) return <span key={i} className="text-[#D2691E] text-sm">★</span>;
-        if (i === full && half) return <span key={i} className="text-[#D2691E] text-sm opacity-50">★</span>;
+        if (i < full) return <span key={i} className="text-[#A8521A] text-sm">★</span>;
+        if (i === full && half) return <span key={i} className="text-[#A8521A] text-sm opacity-50">★</span>;
         return <span key={i} className="text-foreground/20 text-sm">★</span>;
       })}
     </span>

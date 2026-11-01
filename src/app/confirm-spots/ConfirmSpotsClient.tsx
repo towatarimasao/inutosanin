@@ -104,7 +104,7 @@ export default function ConfirmSpotsClient({ spots }: { spots: PendingSpot[] }) 
 
       {/* ヘッダー */}
       <div className="px-4 py-10 text-center border-b" style={{ borderColor: "#E0D8CC" }}>
-        <p className="text-xs font-semibold tracking-widest mb-2" style={{ color: "#D2691E" }}>
+        <p className="text-xs font-semibold tracking-widest mb-2" style={{ color: "#A8521A" }}>
           SPOT CONFIRMATION
         </p>
         <h1 className="text-2xl font-bold mb-3" style={{ color: "#2A2521" }}>
@@ -129,7 +129,7 @@ export default function ConfirmSpotsClient({ spots }: { spots: PendingSpot[] }) 
             onClick={() => setFilterCat("")}
             className="text-xs px-3 py-1 rounded-full border transition-all"
             style={!filterCat
-              ? { backgroundColor: "#D2691E", color: "#fff", borderColor: "#D2691E" }
+              ? { backgroundColor: "#A8521A", color: "#fff", borderColor: "#A8521A" }
               : { backgroundColor: "transparent", color: "#6B6460", borderColor: "#C8BFB5" }
             }
           >
@@ -144,7 +144,7 @@ export default function ConfirmSpotsClient({ spots }: { spots: PendingSpot[] }) 
                 onClick={() => setFilterCat(cat)}
                 className="text-xs px-3 py-1 rounded-full border transition-all"
                 style={filterCat === cat
-                  ? { backgroundColor: "#D2691E", color: "#fff", borderColor: "#D2691E" }
+                  ? { backgroundColor: "#A8521A", color: "#fff", borderColor: "#A8521A" }
                   : { backgroundColor: "transparent", color: "#6B6460", borderColor: "#C8BFB5" }
                 }
               >
@@ -195,7 +195,7 @@ export default function ConfirmSpotsClient({ spots }: { spots: PendingSpot[] }) 
                       type="checkbox"
                       checked={checked.has(spot.id)}
                       onChange={() => toggleCheck(spot.id)}
-                      className="w-4 h-4 rounded accent-[#D2691E]"
+                      className="w-4 h-4 rounded accent-[#A8521A]"
                     />
                     <span className="text-xs whitespace-nowrap" style={{ color: "#6B6460" }}>
                       犬同伴OKでした
@@ -227,7 +227,7 @@ export default function ConfirmSpotsClient({ spots }: { spots: PendingSpot[] }) 
 
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium" style={{ color: "#6B6460" }}>
-              メールアドレス <span style={{ color: "#D2691E" }}>*</span>
+              メールアドレス <span style={{ color: "#A8521A" }}>*</span>
             </label>
             <input
               type="email"
@@ -260,7 +260,7 @@ export default function ConfirmSpotsClient({ spots }: { spots: PendingSpot[] }) 
               type="checkbox"
               checked={consentPublic}
               onChange={(e) => setConsentPublic(e.target.checked)}
-              className="w-4 h-4 rounded accent-[#D2691E]"
+              className="w-4 h-4 rounded accent-[#A8521A]"
             />
             <span className="text-sm" style={{ color: "#2A2521" }}>
               ニックネームをスペシャルサンクスページに掲載してもよい
@@ -280,7 +280,7 @@ export default function ConfirmSpotsClient({ spots }: { spots: PendingSpot[] }) 
             type="submit"
             disabled={checked.size === 0 || status === "submitting"}
             className="px-10 py-3 rounded-full text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ backgroundColor: "#D2691E", color: "#fff" }}
+            style={{ backgroundColor: "#A8521A", color: "#fff" }}
           >
             {status === "submitting"
               ? "送信中…"

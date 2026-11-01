@@ -10,7 +10,7 @@ const INPUT_CLASS = "border rounded px-3 py-2 text-sm focus:outline-none w-full"
 const INPUT_STYLE = { borderColor: "#C8BFB5", color: "#2A2521" };
 const LABEL_CLASS = "text-xs font-medium";
 const LABEL_STYLE = { color: "#6B6460" };
-const REQUIRED = <span style={{ color: "#D2691E" }}>*</span>;
+const REQUIRED = <span style={{ color: "#A8521A" }}>*</span>;
 
 export default function ContactPage() {
   const [name, setName]       = useState("");
@@ -78,7 +78,7 @@ export default function ContactPage() {
 
       {/* ページヘッダー */}
       <div className="px-4 py-10 text-center border-b" style={{ borderColor: "#E0D8CC" }}>
-        <p className="text-xs font-semibold tracking-widest mb-2" style={{ color: "#D2691E" }}>
+        <p className="text-xs font-semibold tracking-widest mb-2" style={{ color: "#A8521A" }}>
           CONTACT
         </p>
         <h1 className="text-2xl font-bold mb-3" style={{ color: "#2A2521" }}>
@@ -180,7 +180,7 @@ export default function ContactPage() {
             type="submit"
             disabled={status === "submitting"}
             className="px-10 py-3 rounded-full text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ backgroundColor: "#D2691E", color: "#fff" }}
+            style={{ backgroundColor: "#A8521A", color: "#fff" }}
           >
             {status === "submitting" ? "送信中…" : "送信する"}
           </button>
