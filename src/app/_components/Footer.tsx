@@ -27,8 +27,8 @@ export default function Footer() {
           <Link href="/">
             <Image src="/icons/inutosanin.svg" alt="イヌとサンイン" width={240} height={80} />
           </Link>
-          <p className="text-sm text-foreground/50 font-normal">愛犬と楽しむサンインのすべて</p>
-          <p className="text-sm text-foreground/60">山陰（鳥取・島根）の犬オーナーのためのポータルサイト</p>
+          <p className="text-sm text-foreground/75 font-normal">愛犬と楽しむサンインのすべて</p>
+          <p className="text-sm text-foreground/75">山陰（鳥取・島根）の犬オーナーのためのポータルサイト</p>
         </div>
 
         {/* 2段目：リンク集 */}
@@ -50,7 +50,7 @@ export default function Footer() {
         <div className="border-t border-foreground/10 pt-6 flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href="/confirm-spots"
-            className="inline-flex items-center justify-center gap-1.5 border-2 border-accent text-accent hover:bg-accent hover:text-white text-sm font-semibold px-6 py-2.5 rounded-full transition-all"
+            className="inline-flex items-center justify-center gap-1.5 border-2 border-accent text-[#8C4415] hover:bg-accent hover:text-white text-sm font-semibold px-6 py-2.5 rounded-full transition-all"
           >
             🐾 犬同伴OK情報を報告する
           </Link>
@@ -63,13 +63,13 @@ export default function Footer() {
         </div>
 
         {/* 4段目：コピーライト */}
-        <div className="border-t border-foreground/10 pt-6 text-xs text-foreground/40 text-center">
+        <div className="border-t border-foreground/10 pt-6 text-xs text-foreground/70 text-center">
           © 2025 イヌとサンイン
         </div>
 
         {/* 管理リンク（目立たせない） */}
         <div className="text-center">
-          <Link href="/admin/spots" className="text-[10px] text-foreground/20 hover:text-foreground/40 transition-colors">
+          <Link href="/admin/spots" className="text-[10px] text-foreground/70 hover:text-foreground transition-colors">
             管理
           </Link>
         </div>

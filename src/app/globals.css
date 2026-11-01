@@ -6,7 +6,7 @@
   --accent: #A8521A;
   --accent-2: #3A6E58;
   --surface: #FCFAF5;
-  --subtext: #6B6A64;
+  --subtext: #57564F;
   /* 本文用：端末標準の日本語フォント（iPhone/Mac=ヒラギノ、Android=Noto Sans CJK、Windows=游ゴシック/メイリオ） */
   --font-system: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Noto Sans CJK JP", "Yu Gothic UI", "Yu Gothic", Meiryo, system-ui, sans-serif;
 }
