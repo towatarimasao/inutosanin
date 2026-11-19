@@ -4,13 +4,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const heroImages = [
-  "/images/hero1.webp",
-  "/images/hero2.webp",
-  "/images/hero3.webp",
-  "/images/hero4.webp",
-  "/images/hero5.webp",
+// 季節ごとに入れ替えるメインビジュアル。先頭の1枚が最初に表示される。
+// 秋〜冬版（2026/11〜）。春夏に戻すときは下の SPRING_SUMMER を使う。
+// 冬の画像を追加したら、ここに { src, alt } を足す。
+const AUTUMN_WINTER = [
+  { src: "/images/hero4.webp", alt: "紅葉の山道を、雪をかぶった大山を背に愛犬と散歩するイラスト" },
+  { src: "/images/hero5.webp", alt: "紅葉と実りの田んぼの道を、家族と柴犬が歩くイラスト" },
 ];
+
+// 春夏版（海辺のテラス・海辺のドッグラン・柳の水辺の町並み）
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const SPRING_SUMMER = [
+  { src: "/images/hero1.webp", alt: "海の見えるテラス席で、犬と一緒にお茶を楽しむイラスト" },
+  { src: "/images/hero2.webp", alt: "山陰の海辺のドッグランで犬たちが遊ぶイラスト" },
+  { src: "/images/hero3.webp", alt: "柳並木の水辺の町並みを、黒い犬と散歩するイラスト" },
+];
+
+const heroImages = AUTUMN_WINTER;
 
 export default function HeroSlideshow() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -44,12 +54,12 @@ export default function HeroSlideshow() {
       {/* 画像をsection内に収めるクリップラッパー */}
       <div className="absolute inset-0 overflow-hidden">
         {/* スライドショー背景 */}
-        {heroImages.map((src, i) =>
+        {heroImages.map(({ src, alt }, i) =>
           i < mountedCount ? (
             <Image
               key={src}
               src={src}
-              alt="山陰の海辺のドッグランで犬たちが遊ぶイラスト"
+              alt={alt}
               fill
               sizes="100vw"
               className={`object-cover transition-opacity duration-1000 ${
