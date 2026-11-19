@@ -176,6 +176,19 @@ function buildCategorySummary(prefName: string, cityName: string, category: stri
   return { heading, description, intro };
 }
 
+// 市町村ページのタイトル。検索で多い「犬連れ ランチ」「ドッグラン」「ペットホテル」などの語を、
+// 実際に掲載があるカテゴリだけ入れる（掲載のない語は入れない）。
+function buildCityTitle(cityName: string, spots: Spot[]) {
+  const has = (c: string) => spots.some((sp) => sp.category === c);
+  const words: string[] = [];
+  if (has("restaurant")) words.push("ランチ・カフェ");
+  if (has("dogrun")) words.push("ドッグラン");
+  if (has("hotel")) words.push("ペットホテル・宿");
+  if (has("vet")) words.push("動物病院");
+  if (spots.length === 0 || words.length === 0) return `${cityName}の犬連れOKスポット一覧`;
+  return `${cityName}の犬連れOKスポット${spots.length}件｜${words.slice(0, 3).join("・")}`;
+}
+
 type PageParams = { slug: string; city: string };
 
 type NearbyCityStats = {
@@ -231,7 +244,7 @@ export async function generateMetadata({
   const { category } = await searchParams;
   const validCategory = CATEGORIES.some((c) => c.slug && c.slug === category) ? category : undefined;
   const catSummary = validCategory ? buildCategorySummary(pref.name, cityDef.name, validCategory, citySpots) : null;
-  const title = catSummary?.heading ?? `${cityDef.name}の犬連れOKスポット一覧`;
+  const title = catSummary?.heading ?? buildCityTitle(cityDef.name, citySpots);
   const description = catSummary?.description ?? buildCitySummary(pref.name, cityDef.name, citySpots).description;
   const pageUrl = `${BASE_URL}/spots/${prefecture}/${city}`;
 
