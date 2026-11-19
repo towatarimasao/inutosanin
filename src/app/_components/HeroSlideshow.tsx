@@ -9,7 +9,10 @@ import { useEffect, useState } from "react";
 // 冬の画像を追加したら、ここに { src, alt } を足す。
 const AUTUMN_WINTER = [
   { src: "/images/hero4.webp", alt: "紅葉の山道を、雪をかぶった大山を背に愛犬と散歩するイラスト" },
+  { src: "/images/hero6.webp", alt: "雪化粧の大山を背に、雪道を柴犬と散歩する夫婦のイラスト" },
+  { src: "/images/hero7.webp", alt: "松江城と堀川沿いの道を、マフラーを巻いた女性が黒いパグと歩くイラスト" },
   { src: "/images/hero5.webp", alt: "紅葉と実りの田んぼの道を、家族と柴犬が歩くイラスト" },
+  { src: "/images/hero8.webp", alt: "冬の夕暮れの日本海の砂浜で、家族とゴールデンレトリバーが遊ぶイラスト" },
 ];
 
 // 春夏版（海辺のテラス・海辺のドッグラン・柳の水辺の町並み）
