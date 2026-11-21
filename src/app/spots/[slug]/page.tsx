@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { findAreaByAddress } from "@/lib/areas";
 import ReportButton from "./ReportButton";
 import PrefectureSpots, { findPrefecture, prefectureMetadata } from "./PrefectureSpots";
+import { DEFAULT_OG_IMAGE } from "@/lib/og";
 
 const BASE_URL = "https://www.inutosanin.jp";
 
@@ -200,7 +201,7 @@ export async function generateMetadata(
   // サイト共通のOGP設定（layout.tsx）を土台に、スポット固有の値で上書きする
   const parentMeta = await parent;
   const pageUrl = `${BASE_URL}/spots/${canonicalSlug}`;
-  const ogImage = spot.photo_url || spot.image_url || "/images/hero.png";
+  const ogImage = spot.photo_url || spot.image_url || DEFAULT_OG_IMAGE;
 
   const cityName = findAreaByAddress(spot.address)?.city.name ?? null;
   const categoryLabel = CATEGORY_LABELS[spot.category] ?? "スポット";

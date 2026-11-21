@@ -8,6 +8,7 @@ import Header from "@/app/_components/Header";
 import Footer from "@/app/_components/Footer";
 import { supabase } from "@/lib/supabase";
 import { findArea, getNearbyCities } from "@/lib/areas";
+import { DEFAULT_OG_IMAGE } from "@/lib/og";
 
 export const dynamic = "force-dynamic";
 
@@ -264,7 +265,7 @@ export async function generateMetadata({
       locale: "ja_JP",
       type: "website",
       // openGraphは親(layout.tsx)の値を丸ごと置き換えるため、共通画像もここで指定する
-      images: [{ url: "/images/hero.png", width: 1200, height: 630, alt: "イヌとサンイン" }],
+      images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: "イヌとサンイン" }],
     },
   };
 }

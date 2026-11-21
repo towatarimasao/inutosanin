@@ -10,6 +10,7 @@ import { db } from "@/db";
 import { wankoGoodsArticles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { renderWankoGoodsBody } from "@/lib/wanko-goods-markdown";
+import { DEFAULT_OG_IMAGE } from "@/lib/og";
 
 const BASE_URL = "https://www.inutosanin.jp";
 
@@ -37,7 +38,7 @@ export async function generateMetadata(
 
   const parentMeta = await parent;
   const pageUrl = `${BASE_URL}/wanko-goods/${article.slug}`;
-  const ogImage = article.thumbnail_url || "/images/hero.png";
+  const ogImage = article.thumbnail_url || DEFAULT_OG_IMAGE;
 
   return {
     title: article.title,

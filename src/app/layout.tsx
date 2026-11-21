@@ -3,6 +3,7 @@ import { Zen_Kaku_Gothic_New, Figtree } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
+import { DEFAULT_OG_IMAGE } from "@/lib/og";
 
 const zenKaku = Zen_Kaku_Gothic_New({
   // 見出し用。500はサイト内で未使用（font-semibold=600は700で描画される）ため外した。
@@ -47,7 +48,7 @@ export const metadata: Metadata = {
       "鳥取・島根の犬オーナーのための情報サイト。ドッグラン・動物病院・ペットホテル・ペットOK飲食店・保護犬情報を一か所に。",
     images: [
       {
-        url: "/images/hero.png",
+        url: DEFAULT_OG_IMAGE,
         width: 1200,
         height: 630,
         alt: "イヌとサンイン",
@@ -63,7 +64,7 @@ export const metadata: Metadata = {
     title: "イヌとサンイン | 山陰の犬オーナーのためのポータルサイト",
     description:
       "鳥取・島根の犬オーナーのための情報サイト。ドッグラン・動物病院・ペットホテル・ペットOK飲食店・保護犬情報を一か所に。",
-    images: ["/images/hero.png"],
+    images: [DEFAULT_OG_IMAGE],
   },
 };
 
