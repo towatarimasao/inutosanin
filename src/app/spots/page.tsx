@@ -11,6 +11,17 @@ export const dynamic = "force-dynamic";
 const BASE_URL = "https://www.inutosanin.jp";
 
 // category・prefectureの指定内容を反映したcanonical URLを生成する
+// メタ情報（検索結果に出るタイトル・説明文）用の言い回し。検索でよく使われる語を含める
+const META_CATEGORY: Record<string, { title: string; desc: string }> = {
+  dogrun:     { title: "ドッグラン",                         desc: "ドッグラン" },
+  vet:        { title: "動物病院",                           desc: "動物病院" },
+  hotel:      { title: "ペットホテル・犬と泊まれる宿",       desc: "ペットホテル・犬と泊まれる宿・犬を預けられる施設" },
+  restaurant: { title: "犬連れOKの飲食店・カフェ",           desc: "犬と一緒に入れる飲食店・カフェ（テラス席のみ可を含む）" },
+  shop:       { title: "ペットショップ・ペット用品店・トリミングサロン", desc: "ペットショップ・ペット用品店・トリミングサロン" },
+  adoption:   { title: "保護犬情報",                         desc: "保護犬の譲渡に関する団体・施設" },
+};
+const META_PREF_LABEL: Record<string, string> = { tottori: "鳥取県", shimane: "島根県" };
+
 export async function generateMetadata({
   searchParams,
 }: {
@@ -23,9 +34,21 @@ export async function generateMetadata({
   if (prefecture) sp.set("prefecture", prefecture);
   const qs = sp.toString();
 
+  // 絞り込み条件ごとにタイトル・説明文を変える。
+  // 以前は全条件で「スポット一覧」と同じタイトルだったため、検索結果で中身が伝わらず、
+  // サーチコンソールでも /spots・/spots?category=shop などのクリック率が1%前後と低かった。
+  const areaLabel = (prefecture && META_PREF_LABEL[prefecture]) || "山陰（鳥取・島根）";
+  const catMeta = category ? META_CATEGORY[category] : undefined;
+  const title = catMeta
+    ? `${areaLabel}の${catMeta.title}一覧`
+    : `${areaLabel}の犬連れOKスポット一覧｜ドッグラン・ペットOKのランチ・カフェ・ペットホテル`;
+  const description = catMeta
+    ? `${areaLabel}の${catMeta.desc}をまとめて掲載。住所・営業時間・電話番号・ペット同伴条件を市町村別に確認できます。`
+    : `${areaLabel}で犬と一緒に行けるスポットを市町村別に掲載。ドッグラン・ペットOKの飲食店やカフェ・ペットホテル・動物病院・ペット用品店の住所・営業時間・同伴条件を確認できます。`;
+
   return {
-    title: "スポット一覧",
-    description: "山陰（鳥取・島根）の犬連れOKスポット一覧。ドッグラン・動物病院・ペットホテルなど。",
+    title,
+    description,
     alternates: {
       canonical: `${BASE_URL}/spots${qs ? `?${qs}` : ""}`,
     },
