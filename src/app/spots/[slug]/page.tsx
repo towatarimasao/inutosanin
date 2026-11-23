@@ -99,7 +99,10 @@ function toOneLine(text: string): string {
 // meta descriptionを組み立てる（無い情報は書かない）。
 // 説明文がある場合はそれを最優先で使う。
 function buildMetaDescription(spot: Spot, cityName: string | null): string {
-  if (spot.description) return spot.description;
+  if (spot.description) {
+    const d = toOneLine(spot.description);
+    return d.length > META_DESCRIPTION_MAX ? `${d.slice(0, META_DESCRIPTION_MAX - 1)}…` : d;
+  }
 
   const label = CATEGORY_LABELS[spot.category] ?? "スポット";
   const parts = [`${cityName ?? "山陰"}の${label}「${spot.name}」の犬連れ情報。`];
@@ -206,7 +209,15 @@ export async function generateMetadata(
   const cityName = findAreaByAddress(spot.address)?.city.name ?? null;
   const categoryLabel = CATEGORY_LABELS[spot.category] ?? "スポット";
   // 「地名+カテゴリ」で検索するユーザーに届くよう、タイトルにも市町村とカテゴリを入れる
-  const title = cityName ? `${spot.name}（${cityName}の${categoryLabel}）` : spot.name;
+  // 店名・病院名で検索する人は「営業時間・電話番号・場所」を知りたいことが多いため、
+  // DBに実際にある項目だけをタイトル末尾に添える（無い情報は書かない）
+  const infoWords: string[] = [];
+  if (spot.business_hours) infoWords.push(spot.category === "vet" ? "診療時間" : "営業時間");
+  if (spot.phone) infoWords.push("電話番号");
+  if (spot.address) infoWords.push("アクセス");
+  const infoSuffix = infoWords.length > 0 ? `｜${infoWords.join("・")}` : "";
+  const baseTitle = cityName ? `${spot.name}（${cityName}の${categoryLabel}）` : spot.name;
+  const title = `${baseTitle}${infoSuffix}`;
   const description = buildMetaDescription(spot, cityName);
 
   return {
@@ -274,7 +285,9 @@ export default async function SpotDetailPage({
   const localBusinessJsonLd = {
     "@context": "https://schema.org",
     "@type": CATEGORY_SCHEMA_TYPE[s.category] ?? "LocalBusiness",
+    "@id": `${pageUrl}#spot`,
     name: s.name,
+    ...(s.phone && { telephone: s.phone }),
     ...(s.address && {
       address: {
         "@type": "PostalAddress",
@@ -290,14 +303,16 @@ export default async function SpotDetailPage({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
+      // 画面上のパンくず（ホーム › スポット一覧 › 市町村）と同じ並びにする。
+      // 以前は ?category= 付きURLを指しており、パラメータ付きページが検索に登録される一因になっていた
       { "@type": "ListItem", position: 1, name: "ホーム", item: BASE_URL },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: CATEGORY_LABELS[s.category] ?? s.category,
-        item: `${BASE_URL}/spots?category=${s.category}`,
-      },
-      { "@type": "ListItem", position: 3, name: s.name, item: pageUrl },
+      { "@type": "ListItem", position: 2, name: "スポット一覧", item: `${BASE_URL}/spots` },
+      ...(area && areaUrl
+        ? [
+            { "@type": "ListItem", position: 3, name: area.city.name, item: `${BASE_URL}${areaUrl}` },
+            { "@type": "ListItem", position: 4, name: s.name, item: pageUrl },
+          ]
+        : [{ "@type": "ListItem", position: 3, name: s.name, item: pageUrl }]),
     ],
   };
 
@@ -491,19 +506,8 @@ export default async function SpotDetailPage({
             </div>
           )}
 
-          {/* 6. 口コミセクション */}
-          <div className="bg-white rounded-2xl border border-accent/10 p-6 mb-8">
-            <h2 className="font-heading text-lg font-bold text-foreground mb-4">口コミ</h2>
-            <p className="text-sm text-subtext text-center py-6">口コミはまだありません</p>
-            <div className="text-center">
-              <button
-                disabled
-                className="inline-block border-2 border-accent text-accent font-semibold px-8 py-3 rounded-full opacity-40 cursor-not-allowed"
-              >
-                口コミを書く（準備中）
-              </button>
-            </div>
-          </div>
+          {/* 口コミ欄は機能が未実装のため非表示にしている（全ページに同じ「口コミはまだありません」が並ぶと、
+              中身の薄いページと見なされやすいため）。口コミ機能を作ったらここに戻す */}
 
           {/* 誤り報告ボタン（vetカテゴリのみ） */}
           {s.category === "vet" && (
