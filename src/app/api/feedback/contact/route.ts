@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
-import { isRateLimited } from "@/lib/spam-guard";
+import {
+  isGloballyRateLimited,
+  isRateLimited,
+  isSuspiciousTiming,
+  looksLikeGibberish,
+} from "@/lib/spam-guard";
 
 const NOTIFY_TO   = "info@greatbrain475.com";
 const NOTIFY_FROM = "イヌとサンイン <notify@greatbrain475.com>";
@@ -19,16 +24,26 @@ function isValidEmail(email: string): boolean {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { name, email, subject, message, honeypot } = body as {
+  const { name, email, subject, message, honeypot, startedAt } = body as {
     name: string;
     email: string;
     subject: string;
     message: string;
     honeypot: string;
+    startedAt: unknown;
   };
 
-  // ボット対策：honeypot に値があれば成功を装って無視
-  if (honeypot) {
+  // ボット対策：以下に当てはまる送信は、成功したように見せて保存も通知もしない
+  // 1. 見えない入力欄（honeypot）に値がある
+  // 2. フォームを開いてから送信までが速すぎる／フォーム画面を経由していない
+  // 3. 本文、または名前と件名の両方が、英字だけの無意味な文字列
+  const spamReason =
+    honeypot ? "honeypot" :
+    isSuspiciousTiming(startedAt) ? "timing" :
+    looksLikeGibberish(message) || (looksLikeGibberish(name) && looksLikeGibberish(subject))
+      ? "gibberish" : null;
+  if (spamReason) {
+    console.warn(`[feedback/contact] 迷惑投稿として破棄: ${spamReason}`);
     return NextResponse.json({ success: true });
   }
 
@@ -47,7 +62,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "入力が長すぎます" }, { status: 400 });
   }
 
-  if (await isRateLimited("contact_submissions", "email", email)) {
+  if (
+    (await isRateLimited("contact_submissions", "email", email)) ||
+    (await isGloballyRateLimited("contact_submissions"))
+  ) {
     return NextResponse.json(
       { error: "短時間に送信が集中しています。しばらくしてからお試しください" },
       { status: 429 }

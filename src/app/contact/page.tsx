@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Header from "@/app/_components/Header";
 import Footer from "@/app/_components/Footer";
 
@@ -20,6 +20,9 @@ export default function ContactPage() {
   const [honeypot, setHoneypot] = useState("");
   const [status, setStatus]   = useState<Status>("idle");
   const [errors, setErrors]   = useState<Record<string, string>>({});
+  // フォームを開いた時刻（送信までが速すぎる機械的な送信を見分けるため）
+  const startedAt = useRef<number | null>(null);
+  useEffect(() => { startedAt.current = Date.now(); }, []);
 
   function validate() {
     const e: Record<string, string> = {};
@@ -42,7 +45,7 @@ export default function ContactPage() {
       const res = await fetch("/api/feedback/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, subject, message, honeypot }),
+        body: JSON.stringify({ name, email, subject, message, honeypot, startedAt: startedAt.current }),
       });
       setStatus(res.ok ? "done" : "error");
     } catch {
