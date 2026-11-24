@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import Header from "@/app/_components/Header";
 import Footer from "@/app/_components/Footer";
 import { supabase } from "@/lib/supabase";
-import { findArea, getNearbyCities } from "@/lib/areas";
+import { findArea, getNearbyCities, cityTitleName } from "@/lib/areas";
 import { DEFAULT_OG_IMAGE } from "@/lib/og";
 
 export const dynamic = "force-dynamic";
@@ -182,7 +182,11 @@ function buildCategorySummary(prefName: string, cityName: string, category: stri
 function buildCityTitle(cityName: string, spots: Spot[]) {
   const has = (c: string) => spots.some((sp) => sp.category === c);
   const words: string[] = [];
-  if (has("restaurant")) words.push("ランチ・カフェ");
+  // 店名に「ペットカフェ」「ドッグカフェ」を含むスポットが実在する場合だけ、その語を題名に出す
+  // （例：「隠岐郡 ペットカフェ」は5位前後で表示されていたがクリック0だった）
+  const hasPetCafe = spots.some((sp) => /ペットカフェ|ドッグカフェ/.test(sp.name));
+  if (hasPetCafe) words.push("ペットカフェ");
+  if (has("restaurant")) words.push(hasPetCafe ? "ランチ" : "ランチ・カフェ");
   if (has("dogrun")) words.push("ドッグラン");
   if (has("hotel")) words.push("ペットホテル・宿");
   if (has("vet")) words.push("動物病院");
@@ -245,7 +249,7 @@ export async function generateMetadata({
   const { category } = await searchParams;
   const validCategory = CATEGORIES.some((c) => c.slug && c.slug === category) ? category : undefined;
   const catSummary = validCategory ? buildCategorySummary(pref.name, cityDef.name, validCategory, citySpots) : null;
-  const title = catSummary?.heading ?? buildCityTitle(cityDef.name, citySpots);
+  const title = catSummary?.heading ?? buildCityTitle(cityTitleName(cityDef), citySpots);
   const description = catSummary?.description ?? buildCitySummary(pref.name, cityDef.name, citySpots).description;
   const pageUrl = `${BASE_URL}/spots/${prefecture}/${city}`;
 
