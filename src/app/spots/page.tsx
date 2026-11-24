@@ -4,7 +4,7 @@ import Link from "next/link";
 import Header from "@/app/_components/Header";
 import Footer from "@/app/_components/Footer";
 import { supabase } from "@/lib/supabase";
-import { findAreaByCityName } from "@/lib/areas";
+import { AREAS, findAreaByCityName } from "@/lib/areas";
 
 export const dynamic = "force-dynamic";
 
@@ -176,6 +176,17 @@ export default async function SpotsPage({
 
   const cityList = activePrefecture ? CITIES[activePrefecture] ?? [] : [];
 
+  // 見出し：検索結果の題名（generateMetadata）と同じ言い回しにそろえる。
+  // 以前は絞り込み条件に関係なく「スポット一覧」だけだった
+  const headingArea = (activePrefecture && META_PREF_LABEL[activePrefecture]) || "山陰（鳥取・島根）";
+  const headingCat = activeCategory ? META_CATEGORY[activeCategory] : undefined;
+  const heading = headingCat
+    ? `${headingArea}の${headingCat.title}一覧`
+    : `${headingArea}の犬連れOKスポット一覧`;
+
+  // 「市町村から探す」に出す専用ページ。県を選んでいるときはその県だけ
+  const areaLinkPrefs = activePrefecture ? AREAS.filter((p) => p.slug === activePrefecture) : AREAS;
+
   return (
     <>
       <Header />
@@ -187,7 +198,7 @@ export default async function SpotsPage({
           <div className="max-w-5xl mx-auto">
             <p className="text-xs font-en font-semibold text-accent tracking-widest mb-2">SPOTS</p>
             <h1 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">
-              スポット一覧
+              {heading}
             </h1>
             <p className="text-sm text-subtext mt-2">
               山陰（鳥取・島根）の犬連れOKスポットを探せます
@@ -403,6 +414,36 @@ export default async function SpotsPage({
             )}
           </div>
         </section>
+
+        {/* 市町村から探す：専用ページへの入口（以前は県を選ばないと市町村ページへのリンクが出なかった） */}
+        {!activeCity && (
+          <section className="px-4 sm:px-6 py-10 border-t border-foreground/10">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="font-heading text-lg font-bold text-foreground mb-5">
+                市町村から探す
+              </h2>
+              <div className="flex flex-col gap-5">
+                {areaLinkPrefs.map((pref) => (
+                  <div key={pref.slug}>
+                    <h3 className="text-sm font-semibold text-subtext mb-2">{pref.name}</h3>
+                    <ul className="flex flex-wrap gap-2">
+                      {pref.cities.map((c) => (
+                        <li key={c.slug}>
+                          <Link
+                            href={`/spots/${pref.slug}/${c.slug}${activeCategory ? `?category=${activeCategory}` : ""}`}
+                            className={`${PILL_BASE} ${PILL_INACTIVE} inline-block bg-white`}
+                          >
+                            {c.name}の{activeCategory ? CATEGORY_LABELS[activeCategory] ?? "犬連れスポット" : "犬連れスポット"}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* 投稿・報告ボタン */}
         <section className="px-4 sm:px-6 py-10 border-t border-foreground/10">

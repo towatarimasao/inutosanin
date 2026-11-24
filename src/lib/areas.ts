@@ -4,6 +4,9 @@
 export type AreaCity = {
   slug: string;
   name: string;
+  // 検索でよく使われる通称（例：大山町→「大山」、隠岐の島町→「隠岐」）。
+  // ページの題名にだけ添える。本文・住所の照合には使わない
+  commonName?: string;
 };
 
 export type AreaPrefecture = {
@@ -22,7 +25,7 @@ export const AREAS: AreaPrefecture[] = [
       { slug: "kurayoshi",    name: "倉吉市" },
       { slug: "sakaiminato",  name: "境港市" },
       { slug: "hoki",         name: "伯耆町" },
-      { slug: "daisen",       name: "大山町" },
+      { slug: "daisen",       name: "大山町", commonName: "大山" },
     ],
   },
   {
@@ -37,7 +40,7 @@ export const AREAS: AreaPrefecture[] = [
       { slug: "yasugi",     name: "安来市" },
       { slug: "unnan",      name: "雲南市" },
       { slug: "gotsu",      name: "江津市" },
-      { slug: "okinoshima", name: "隠岐の島町" },
+      { slug: "okinoshima", name: "隠岐の島町", commonName: "隠岐" },
       { slug: "iinan",      name: "飯南町" },
     ],
   },
@@ -119,4 +122,9 @@ export function findAreaByAddress(
     }
   }
   return null;
+}
+
+// 題名用の市町村表記。通称がある場合は「大山（大山町）」のように添える
+export function cityTitleName(city: AreaCity): string {
+  return city.commonName ? `${city.commonName}（${city.name}）` : city.name;
 }
