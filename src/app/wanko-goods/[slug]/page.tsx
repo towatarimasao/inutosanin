@@ -1,4 +1,5 @@
-export const dynamic = "force-dynamic";
+// ページを10分間キャッシュして配信する（毎回サーバーで組み立てると表示が遅くなるため）
+export const revalidate = 600;
 
 import type { Metadata, ResolvingMetadata } from "next";
 import Image from "next/image";
