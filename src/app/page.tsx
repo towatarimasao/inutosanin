@@ -9,6 +9,9 @@ import { db } from "@/db";
 import { wankoGoodsArticles } from "@/db/schema";
 import { desc } from "drizzle-orm";
 
+// ページを10分間キャッシュして配信する（毎回サーバーで組み立てると表示が遅くなるため）
+export const revalidate = 600;
+
 export const metadata: Metadata = {
   title: "イヌとサンイン | 山陰の犬オーナーのためのポータルサイト",
 };
@@ -99,7 +102,8 @@ function stripHtml(html: string): string {
 async function fetchNoteTopics(): Promise<NoteArticle[]> {
   try {
     const res = await fetch("https://note.com/inutosanin/rss", {
-      cache: "no-store",
+      // 10分ごとに取り直す（毎回取りに行くと表示が遅くなるため）
+      next: { revalidate: 600 },
     });
 
     if (!res.ok) return [];
