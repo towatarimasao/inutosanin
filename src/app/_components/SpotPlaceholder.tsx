@@ -1,16 +1,15 @@
 import Image from "next/image";
 
-// 写真がないスポット用の、分類ごとのイラスト（トップページの「カテゴリから探す」と同じアイコン・配色）
-const VISUALS: Record<string, { icon: string; bg: string; iconBg: string; label: string }> = {
-  dogrun:     { icon: "/icons/dogrun.svg",  bg: "#E2EEE8", iconBg: "#C5DDD0", label: "ドッグラン" },
-  vet:        { icon: "/icons/clinick.svg", bg: "#DEEAF0", iconBg: "#BDD4E3", label: "動物病院" },
-  hotel:      { icon: "/icons/bed.svg",     bg: "#FBEADD", iconBg: "#F5D0B5", label: "ペットホテル" },
-  restaurant: { icon: "/icons/cafe.svg",    bg: "#E2EEE8", iconBg: "#C5DDD0", label: "ペットOK飲食店" },
-  shop:       { icon: "/icons/shop.svg",    bg: "#DEEAF0", iconBg: "#BDD4E3", label: "ペット用品店・サロン" },
-  adoption:   { icon: "/icons/hogoken.svg", bg: "#FBEADD", iconBg: "#F5D0B5", label: "保護犬情報" },
+// 写真がないスポット用の、分類ごとのイメージ画像（トップと同じ絵本風のイラスト）。
+// 実際の店・施設の写真ではないため、必ず「イメージ」と表示する。
+const IMAGES: Record<string, string> = {
+  dogrun:     "/images/category/dogrun.webp",
+  vet:        "/images/category/vet.webp",
+  hotel:      "/images/category/hotel.webp",
+  restaurant: "/images/category/restaurant.webp",
+  shop:       "/images/category/shop.webp",
+  adoption:   "/images/category/adoption.webp",
 };
-
-const FALLBACK = { icon: "/icons/dogrun.svg", bg: "#E2EEE8", iconBg: "#C5DDD0", label: "スポット" };
 
 export default function SpotPlaceholder({
   category,
@@ -19,22 +18,27 @@ export default function SpotPlaceholder({
   category: string;
   size?: "md" | "lg";
 }) {
-  const v = VISUALS[category] ?? FALLBACK;
-  const circle = size === "lg" ? "w-28 h-28" : "w-16 h-16";
-  const iconPx = size === "lg" ? 64 : 36;
-
+  const src = IMAGES[category] ?? IMAGES.dogrun;
   return (
-    <div
-      className="absolute inset-0 flex items-center justify-center"
-      style={{ backgroundColor: v.bg }}
-      aria-hidden="true"
-    >
-      <div
-        className={`${circle} flex items-center justify-center rounded-full`}
-        style={{ backgroundColor: v.iconBg }}
+    <div className="absolute inset-0" aria-hidden="true">
+      <Image
+        src={src}
+        alt=""
+        fill
+        className="object-cover"
+        sizes={
+          size === "lg"
+            ? "(max-width: 768px) 100vw, 768px"
+            : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        }
+      />
+      <span
+        className={`absolute bottom-2 right-2 rounded-full bg-white/80 text-[#6B6460] ${
+          size === "lg" ? "text-xs px-2.5 py-1" : "text-[10px] px-2 py-0.5"
+        }`}
       >
-        <Image src={v.icon} alt="" width={iconPx} height={iconPx} />
-      </div>
+        イメージ
+      </span>
     </div>
   );
 }
