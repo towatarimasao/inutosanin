@@ -9,6 +9,8 @@ import Footer from "@/app/_components/Footer";
 import { supabase } from "@/lib/supabase";
 import { findAreaByAddress } from "@/lib/areas";
 import ReportButton from "./ReportButton";
+import LivePlacePhoto from "./LivePlacePhoto";
+import SpotPlaceholder from "@/app/_components/SpotPlaceholder";
 import PrefectureSpots, { findPrefecture, prefectureMetadata } from "./PrefectureSpots";
 import { DEFAULT_OG_IMAGE } from "@/lib/og";
 
@@ -70,6 +72,7 @@ type Spot = {
   pet_condition: string | null;
   image_url: string | null;
   photo_url: string | null;
+  google_place_id: string | null;
   business_hours: string | null;
   phone: string | null;
   parking: boolean | null;
@@ -414,7 +417,10 @@ export default async function SpotDetailPage({
                 sizes="(max-width: 768px) 100vw, 768px"
               />
             ) : (
-              <span className="text-6xl opacity-20">🐾</span>
+              <>
+                <SpotPlaceholder category={s.category} size="lg" />
+                {s.google_place_id && <LivePlacePhoto spotId={s.id} alt={s.name} />}
+              </>
             )}
           </div>
 
