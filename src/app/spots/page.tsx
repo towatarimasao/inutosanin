@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import SpotPlaceholder from "@/app/_components/SpotPlaceholder";
 import Header from "@/app/_components/Header";
 import Footer from "@/app/_components/Footer";
 import { supabase } from "@/lib/supabase";
@@ -345,7 +346,7 @@ export default async function SpotsPage({
                               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             />
                           ) : (
-                            <span className="text-4xl opacity-30">🐾</span>
+                            <SpotPlaceholder category={spot.category} />
                           )}
                           <span
                             className="absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full z-10"
