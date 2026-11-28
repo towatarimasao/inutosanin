@@ -8,32 +8,57 @@
 - GitHub: towatarimasao/inutosanin
 
 ## スタック
-- Next.js 14 / TypeScript / Tailwind
-- DB: Supabase（spots関連の全機能）、Drizzle ORM + Neon PostgreSQL（topics機能のみ）
-- 注：src/db/schema.tsのspotsテーブル定義はデッドコード（未参照）
-- Vercel（ホスティング）
+- Next.js 16.4.6（App Router）/ TypeScript / Tailwind
+- DB:
+  - Supabase（東京リージョン）：スポットなど、topics・わんこグッズ比較以外の全機能
+  - Neon PostgreSQL + Drizzle ORM：topics とわんこグッズ比較（wanko_goods_articles）
+  - 注：src/db/schema.ts の spots テーブル定義はデッドコード（未参照）
+- Vercel（ホスティング）。サーバーは東京（vercel.json の regions: hnd1）
 - Google Places API
-- 環境変数：DATABASE_URL / GOOGLE_PLACES_API_KEY（Vercel設定済み）
+- 環境変数：DATABASE_URL / GOOGLE_PLACES_API_KEY / PHOTO_MONTHLY_CAP など（Vercel設定済み）
 
-## ディレクトリ構成
+## ページの作り置き（キャッシュ）
+- トップ・トピックス・わんこグッズ比較は10分ごとに作り直す（`export const revalidate = 600`）
+- sitemap は1時間ごと（revalidate 3600）
+
+## ディレクトリ構成（主なもの）
 src/
 ├── app/
-│   ├── about/
-│   ├── topics/        # Note.com RSSコンテンツ
-│   ├── layout.tsx
-│   ├── page.tsx
-│   ├── sitemap.ts
-│   └── robots.ts
-└── db/
-    ├── index.ts
-    └── schema.ts
+│   ├── _components/        # 共通部品（SpotPlaceholder＝写真がないときの分類イメージ）
+│   ├── spots/              # スポット一覧・詳細（Supabase）
+│   ├── topics/             # Note.com RSSコンテンツ（Neon）
+│   ├── wanko-goods/        # わんこグッズ比較（Neon）
+│   ├── admin/              # 管理画面
+│   ├── api/
+│   │   ├── spot-photo/[id]/        # Google写真をその場で表示
+│   │   ├── admin/fill-place-ids/   # 場所番号付け（管理者のみ）
+│   │   └── batch/                  # 一括処理（写真を保存する3つは停止済み）
+│   └── layout.tsx / page.tsx / sitemap.ts / robots.ts
+├── lib/                    # supabase.ts / photo-source.ts / areas.ts など
+└── db/                     # Neon用（index.ts / schema.ts）
+public/images/category/     # 分類ごとのイメージ画像
+scripts/                    # 手元で動かす保守用スクリプト
 
 ## Google API 制約（最重要）
 - 予算アラート：¥3,000上限（50% / 90% / 100%で通知）
-- 7/1〜データ収集開始予定
 - 1日の収集件数を必ず制限すること
 - 絶対禁止：無制限ループでのAPI呼び出し
 - APIコスト見積もりなしにバッチを走らせない
+
+## Googleの写真（規約上の制約・最重要）
+- Googleの写真は保存禁止（規約）。保存してよいのは場所番号（google_place_id）だけ
+- 写真は /api/spot-photo/[id] でその場で取得して表示し、撮影者の名前を必ず出す
+- 月の取得上限は環境変数 PHOTO_MONTHLY_CAP（未設定なら850回）。
+  回数は Supabase の photo_api_usage テーブルで数える
+- 写真がないスポットは public/images/category の分類イメージを表示する
+- 写真を保存する一括処理（api/batch の spot-photos / rehost-google-photos / cache-photos）は停止済み。
+  **復活させないこと**
+
+## よく使う保守作業
+- 場所番号付け：管理画面にログインしたうえで /api/admin/fill-place-ids
+  （GET＝確認のみ、POST＝書き込み）
+- URL用の名前（slug）付け：`node scripts/backfill-slugs.js --apply`
+  （引数なしで確認のみ。既存のslugは --force を付けない限り上書きしない）
 
 ## よくあるバグパターン
 - DB接続エラー（spots関連） → NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SECRET_KEY確認
@@ -43,13 +68,8 @@ src/
 ## 開発ルール
 - 本番DBは直接触らない
 - マイグレーション前にスキーマ変更内容を必ず確認
-
-## 現在の残タスク
-- GSCサイトマップ確認
-- favicon設定
-- Instagramアカウント作成（@inuto_sanin）
-- スポット一覧ページUIの実装
-- Google Places APIデータ収集（7/1〜）
+- 変更は必ず作業用ブランチ＋プルリクで出す。mainへのマージ（本番反映）はトワが行う。
+  Claude はマージしない
 
 ## ローカル開発
 cd ~/inutosanin
