@@ -13,6 +13,7 @@ import LivePlacePhoto from "./LivePlacePhoto";
 import SpotPlaceholder from "@/app/_components/SpotPlaceholder";
 import PrefectureSpots, { findPrefecture, prefectureMetadata } from "./PrefectureSpots";
 import { DEFAULT_OG_IMAGE } from "@/lib/og";
+import { ownPhoto } from "@/lib/photo-source";
 
 const BASE_URL = "https://www.inutosanin.jp";
 
@@ -207,7 +208,7 @@ export async function generateMetadata(
   // サイト共通のOGP設定（layout.tsx）を土台に、スポット固有の値で上書きする
   const parentMeta = await parent;
   const pageUrl = `${BASE_URL}/spots/${canonicalSlug}`;
-  const ogImage = spot.photo_url || spot.image_url || DEFAULT_OG_IMAGE;
+  const ogImage = ownPhoto(spot.photo_url, spot.image_url) || DEFAULT_OG_IMAGE;
 
   const cityName = findAreaByAddress(spot.address)?.city.name ?? null;
   const categoryLabel = CATEGORY_LABELS[spot.category] ?? "スポット";
@@ -283,7 +284,7 @@ export default async function SpotDetailPage({
     !!s.dog_size &&
     s.dog_size !== "all" &&
     (s.category === "restaurant" || s.category === "dogrun");
-  const spotImage = s.photo_url || s.image_url || undefined;
+  const spotImage = ownPhoto(s.photo_url, s.image_url) || undefined;
 
   const localBusinessJsonLd = {
     "@context": "https://schema.org",
@@ -407,9 +408,9 @@ export default async function SpotDetailPage({
 
           {/* 2. メイン画像エリア */}
           <div className="relative aspect-video rounded-2xl overflow-hidden bg-[#E2EEE8] flex items-center justify-center mb-8">
-            {(s.photo_url || s.image_url) ? (
+            {ownPhoto(s.photo_url, s.image_url) ? (
               <Image
-                src={(s.photo_url || s.image_url)!}
+                src={ownPhoto(s.photo_url, s.image_url)!}
                 alt={s.name}
                 fill
                 unoptimized

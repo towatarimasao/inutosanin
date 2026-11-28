@@ -4,6 +4,7 @@ import { cache } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import SpotPlaceholder from "@/app/_components/SpotPlaceholder";
+import { ownPhoto } from "@/lib/photo-source";
 import { notFound } from "next/navigation";
 import Header from "@/app/_components/Header";
 import Footer from "@/app/_components/Footer";
@@ -391,9 +392,9 @@ export default async function CitySpotsPage({
 
                         {/* 画像エリア */}
                         <div className="relative aspect-video bg-[#E2EEE8] flex items-center justify-center overflow-hidden">
-                          {spot.photo_url ? (
+                          {ownPhoto(spot.photo_url) ? (
                             <Image
-                              src={spot.photo_url}
+                              src={ownPhoto(spot.photo_url)!}
                               alt={spot.name}
                               fill
                               unoptimized
