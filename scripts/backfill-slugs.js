@@ -39,13 +39,20 @@ async function main() {
   const rows = await computeSlugRows(spots, kuroshiro);
 
   // 現在のslug値を取得し、書き込み要否を判定する
-  const { data: currentSlugs, error: currentSlugsError } = await readClient
-    .from("spots")
-    .select("id, slug")
-    .in("id", rows.map((r) => r.id));
-  if (currentSlugsError) {
-    console.error("[backfill-slugs] 現在のslug取得失敗:", currentSlugsError.message);
-    process.exit(1);
+  // 全idを一度に渡すとURLが長すぎて失敗するため、100件ずつに分けて取得する
+  const CHUNK_SIZE = 100;
+  const allIds = rows.map((r) => r.id);
+  const currentSlugs = [];
+  for (let i = 0; i < allIds.length; i += CHUNK_SIZE) {
+    const { data, error } = await readClient
+      .from("spots")
+      .select("id, slug")
+      .in("id", allIds.slice(i, i + CHUNK_SIZE));
+    if (error) {
+      console.error("[backfill-slugs] 現在のslug取得失敗:", error.message);
+      process.exit(1);
+    }
+    currentSlugs.push(...data);
   }
   const currentSlugById = new Map(currentSlugs.map((s) => [s.id, s.slug]));
 
