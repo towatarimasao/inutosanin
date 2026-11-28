@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import SpotPlaceholder from "@/app/_components/SpotPlaceholder";
+import { ownPhoto } from "@/lib/photo-source";
 import Header from "@/app/_components/Header";
 import Footer from "@/app/_components/Footer";
 import { supabase } from "@/lib/supabase";
@@ -336,9 +337,9 @@ export default async function SpotsPage({
 
                         {/* 画像エリア */}
                         <div className="relative aspect-video bg-[#E2EEE8] flex items-center justify-center overflow-hidden">
-                          {spot.photo_url ? (
+                          {ownPhoto(spot.photo_url) ? (
                             <Image
-                              src={spot.photo_url}
+                              src={ownPhoto(spot.photo_url)!}
                               alt={spot.name}
                               fill
                               unoptimized

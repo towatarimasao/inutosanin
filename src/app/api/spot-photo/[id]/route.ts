@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { ownPhoto } from "@/lib/photo-source";
 
 // スポット詳細ページで、Googleの写真を「保存せずに」その場で表示するための窓口。
 // - Googleの規約上、写真そのものや写真の名前は保存できないため、毎回Googleに問い合わせる
@@ -50,7 +51,7 @@ export async function GET(
     .maybeSingle();
 
   if (!spot || !spot.is_active || spot.listing_status !== "published") return noPhoto("not_found");
-  if (spot.photo_url || spot.image_url) return noPhoto("has_own_photo");
+  if (ownPhoto(spot.photo_url, spot.image_url)) return noPhoto("has_own_photo");
   if (!spot.google_place_id) return noPhoto("no_place_id");
 
   try {
